@@ -56,15 +56,15 @@ export default {
 .dot {
   position: absolute;
   box-sizing: border-box;
-  border-width: 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
   border-radius: 50%;
   height: 100px;
   width: 100px;
   top: 100px;
-  left: 100px;
-  background-color: red;
   transition-timing-function: linear;
-  transition-property: all
+  transition-property: all;
 }
 
 </style>

@@ -1,23 +1,26 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to my very first Vue.js App" />
-    <span>{{time}}</span>
+    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
+    <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
+    <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button>
+    <div>time = {{time.toFixed(Math.round(Math.log10(1000/dt)))}} s</div>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+// import HelloWorld from "./components/HelloWorld.vue";
 
 export default {
   name: "App",
-  components: {
-    HelloWorld,
-  },
+  // components: {
+  //   HelloWorld,
+  // },
   data() {
     return {
       interval: null,
-      time: 0
+      time: 0,
+      dt: 100,
+      running: true
     }
   },
   beforeDestroy() {
@@ -25,7 +28,12 @@ export default {
     clearInterval(this.interval)
   },
   created() {
-    this.interval = setInterval(() => this.time++, 1000)
+    this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
+    // if (this.running) {
+    //   this.interval = setInterval(() => this.time += this.dt / 1000, this.dt);
+    // } else {
+    //   if (this.time) clearInterval(this.interval);
+    // }
   }
 };
 </script>

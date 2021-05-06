@@ -34,13 +34,10 @@ export default {
   methods: {
     increment: function () {
       this.time += this.running ? this.dt / 1000 : 0;
+      setTimeout(this.increment, this.dt);
     }
   },
-  created() {
-    this.interval = setTimeout(() => {
-      this.increment();
-      setTimeout(this.increment, this.dt);
-    }, this.dt)
+  created() {this.increment()}
     // this.interval = setInterval(this.increment, this.dt);
     // this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
     // if (this.running) {
@@ -48,7 +45,6 @@ export default {
     // } else {
     //   if (this.time) clearInterval(this.interval);
     // }
-  }
 };
 </script>
 

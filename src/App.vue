@@ -31,8 +31,18 @@ export default {
     // prevent memory leak
     clearInterval(this.interval)
   },
+  methods: {
+    increment: function () {
+      this.time += this.running ? this.dt / 1000 : 0;
+    }
+  },
   created() {
-    this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
+    this.interval = setTimeout(() => {
+      this.increment();
+      setTimeout(this.increment, this.dt);
+    }, this.dt)
+    // this.interval = setInterval(this.increment, this.dt);
+    // this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
     // if (this.running) {
     //   this.interval = setInterval(() => this.time += this.dt / 1000, this.dt);
     // } else {

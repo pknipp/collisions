@@ -52,7 +52,7 @@ export default {
       time: 0,
       dtLast: null,
       xs: [300, 500, 700, 900],
-      vs: [0, -20, -25, -10],
+      vs: [10, -20, -25, -10],
       diameter: 100,
       numCol: 0,
       running: true
@@ -67,30 +67,21 @@ export default {
       // "numCol" means the number of the next collision, w/1-based counting
       if (this.numCol > 0) {
         this.dtLast = this.dtNext;
-        if (this.numCol === 1) {
-          this.dtNext = 1000 * (this.xs[1] - this.xs[0] - this.diameter) / (this.vs[0] - this.vs[1]);
+        let dtMin = Infinity;
+        let dt, iMin, jMin;
+        for (let i = 0; i < this.xs.length; i++) {
+          for (let j = i + 1; j < this.xs.length; j++) {
+            dt = (this.xs[j] - this.xs[i] - this.diameter) / (this.vs[i] - this.vs[j]);
+            if (dt > 0 && dt < dtMin) [iMin, jMin, dtMin] = [i, j, dt];
+          }
         }
-        if (this.numCol === 2) {
-          this.dtNext = 1000 * (this.xs[2] - this.xs[1] - this.diameter) / (this.vs[1] - this.vs[2]);
-        }
-        if (this.numCol === 3) {
-          this.dtNext = 1000 * (this.xs[3] - this.xs[2] - this.diameter) / (this.vs[2] - this.vs[3]);
-        }
-        this.xs[0] += this.vs[0] * this.dtNext / 1000;
-        this.xs[1] += this.vs[1] * this.dtNext / 1000;
-        this.xs[2] += this.vs[2] * this.dtNext / 1000;
-        this.xs[3] += this.vs[3] * this.dtNext / 1000;
-        if (this.numCol === 1) {
-          [this.vs[0], this.vs[1]] = [this.vs[1], this.vs[0]];
-        }
-        if (this.numCol === 2) {
-          [this.vs[1], this.vs[2]] = [this.vs[2], this.vs[1]];
-        }
+        this.dtNext = dtMin * 1000;
+        this.xs = this.xs.map((x, i) => x + this.vs[i] * this.dtNext / 1000);
+        [this.vs[iMin], this.vs[jMin]] = [this.vs[jMin], this.vs[iMin]];
         this.time += this.running ? this.dtNext / 1000 : 0;
       }
       this.numCol++;
-      console.log(this.numCol, this.dtLast, this.dtNext, this.xs, this.vs);
-      if (this.numCol < 4) this.timeout = setTimeout(this.increment, this.dtNext);
+      if (this.dtNext >= 0) this.timeout = setTimeout(this.increment, this.dtNext);
     }
   },
   created() {this.increment()}

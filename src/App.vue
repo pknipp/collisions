@@ -9,7 +9,7 @@
         left:x + 'px',
         height: diameter + 'px',
         width: diameter + 'px',
-        transitionDuration: dtNext / 1000 + 's'
+        transitionDuration: dtNext + 's'
       }"></div>
     </div>
   </div>
@@ -29,8 +29,9 @@ export default {
       dtNext: 0,
       time: 0,
       dtLast: null,
+      // units are px and px/s
       xs: [100, 300, 500, 700, 900, 1100],
-      vs: [200, 400, 1000, -200, 300, -70],
+      vs: [40, 80, 200, -40, 60, -17],
       diameter: 100,
       numCol: 0,
       width: 1200,
@@ -64,16 +65,16 @@ export default {
           }
         }
         this.xs = this.xs.map((x, i) => x + this.vs[i] * dtMin);
-        this.dtNext = dtMin * 1000;
+        this.dtNext = dtMin;
         if (iMin !== jMin) {
           [this.vs[iMin], this.vs[jMin]] = [this.vs[jMin], this.vs[iMin]];
         } else {
           this.vs[iMin] *= -1;
         }
-        this.time += this.running ? this.dtNext / 1000 : 0;
+        this.time += this.running ? this.dtNext : 0;
       }
       this.numCol++;
-      this.timeout = setTimeout(this.increment, this.dtNext);
+      this.timeout = setTimeout(this.increment, this.dtNext * 1000);
     }
   },
   created() {this.increment()}

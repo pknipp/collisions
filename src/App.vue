@@ -32,8 +32,8 @@ export default {
       dtLast: null,
       // units are px and px/s
       dots: [
-        {id: 1, x: 200, y: 300, vx: 40, vy: 4},
-        {id: 2, x: 800, y: 300, vx: 0, vy:0},
+        {id: 1, x: 200, y: 300, vx: 30, vy: 10},
+        {id: 2, x: 800, y: 500, vx: -10, vy:0},
       ],
       diameter: 100,
       numCol: -1,
@@ -78,7 +78,6 @@ export default {
             //   dv = 2 * this.vs[i];
             //   dx = 2 * ((dv > 0 ? this.width : 0) - this.xs[i]);
               if (this.willCollide(this.diameter, dr, dv)) {
-                // console.log(i, " and " , j, "will collide.")
                 dt = this.timeToCollide(this.diameter, dr, dv);
                 if (dt < dtMin) dtMin = dt;
               }
@@ -100,7 +99,7 @@ export default {
         // } else {
         //   this.vs[iMin] *= -1;
         // }
-        // this.time += this.running ? this.dtNext : 0;
+        this.time += this.running ? this.dtNext : 0;
       }
       this.numCol++;
       this.timeout = setTimeout(this.increment, this.dtNext * 1000);

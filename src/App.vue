@@ -6,11 +6,11 @@
     <div>time = {{time.toFixed(2)}} s, numCol = {{numCol}}</div>
     <div class="container" v-bind:style="{width: width + 'px', height: height + 'px'}">
       <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
-        left:dot.x + 'px',
-        top:dot.y + 'px',
+        left:dot.rxy[0] + 'px',
+        top:dot.rxy[1] + 'px',
         height: diameter + 'px',
         width: diameter + 'px',
-        transitionDuration: dtNext + 's'
+        transitionDuration: dt + 's'
       }"></div>
     </div>
   </div>
@@ -27,19 +27,19 @@ export default {
   data() {
     return {
       timeout: null,
-      dtNext: 0,
       time: 0,
-      dtLast: null,
+      dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, x: 200, y: 300, vx: 30, vy: 10},
-        {id: 2, x: 800, y: 500, vx: -10, vy:0},
+        {id: 1, rxy: [200, 300], vxy: [400, -200]},
+        {id: 2, rxy: [400, 500], vxy: [1,1]},
       ],
       diameter: 100,
-      numCol: -1,
+      numCol: 0,
       width: 1200,
-      height: 800,
-      running: true
+      height: 700,
+      running: true,
+      wallIndex: 0
     }
   },
   beforeDestroy() {
@@ -59,28 +59,57 @@ export default {
       const theta2 = Math.PI - Math.asin(Math.sqrt(dr2) * Math.sin(theta) / radius);
       const theta3 = Math.PI - theta - theta2;
       const ds = Math.sin(theta3) * radius / Math.sin(theta);
-      console.log(crossProd, dr2, dv2, theta, theta2, theta3, ds);
+      // console.log(crossProd, dr2, dv2, theta, theta2, theta3, ds);
       return ds / Math.sqrt(dv2);
+    },
+    whichWall: function (dot) {
+      // walls are numbered 0 (top), 1 (right), 2 (bottom), 3 (left)
+      if (dot.vxy[1]>0 && dot.vxy[0]>0) {
+        return (dot.vxy[1]*(this.width-this.diameter/2-dot.rxy[0])>dot.vxy[0]*(this.height-this.diameter/2-dot.rxy[1]))?3:2;
+      }
+      if (dot.vxy[1]>0 && dot.vxy[0]<0) {
+        return (dot.vxy[1] * (dot.rxy[0]-this.diameter/2)>-dot.vxy[0]*(this.height-this.diameter/2-dot.rxy[1]))? 3 : 4;
+      }
+      if (dot.vxy[1]<0 && dot.vxy[0]>0) {
+        return (-dot.vxy[1]*(this.width - this.diameter/2 - dot.rxy[0])> dot.vxy[0] * (dot.rxy[1] - this.diameter/2)) ? 1 : 2;
+      }
+      if (dot.vxy[1]<0 && dot.vxy[0]<0) {
+        return (-dot.vxy[1]*(dot.rxy[0]-this.diameter/2)>-dot.vxy[0] * (dot.rxy[1]-this.diameter/2)) ? 1 : 4;
+      }
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
-      if (this.numCol > 0) {
-        this.dtLast = this.dtNext;
+      if (this.numCol) {
+        console.log("time = ", this.time, "vxy = ", this.dots[0].vxy);
+        // this.dtLast = this.dtNext;
         let dtMin = Infinity;
-        let dv, dr, dt; //, iMin, jMin, dot;
+        let dv, dr, wallIndex, wallIndexMin, iMin, jMin;//, dot;
         for (let i = 0; i < this.dots.length; i++) {
           for (let j = i; j < this.dots.length; j++) {
+            let dt = Infinity;
+            console.log("(i, j) = ", i, j);
             if (j !== i) {
-              dv = [this.dots[i].vx- this.dots[j].vx, this.dots[i].vy- this.dots[j].vy];
-              dr = [this.dots[i].x - this.dots[j].x , this.dots[i].y - this.dots[j].y];
-              // dot = dv.reduce((dot, vcomp, i) => dot + vcomp * dr[i]);
-            // } else {
-            //   dv = 2 * this.vs[i];
-            //   dx = 2 * ((dv > 0 ? this.width : 0) - this.xs[i]);
+              dv = [this.dots[i].vxy[0]-this.dots[j].vxy[0], this.dots[i].vxy[1]-this.dots[j].vxy[1]];
+              dr = [this.dots[i].rxy[0]-this.dots[j].rxy[0], this.dots[i].rxy[1]-this.dots[j].rxy[1]];
               if (this.willCollide(this.diameter, dr, dv)) {
                 dt = this.timeToCollide(this.diameter, dr, dv);
-                if (dt < dtMin) dtMin = dt;
               }
+              // dot = dv.reduce((dot, vcomp, i) => dot + vcomp * dr[i]);
+              wallIndex = 0;
+            } else {
+              wallIndex = this.whichWall(this.dots[i]);
+              console.log("Wall bounce into #", wallIndex);
+              if (wallIndex === 1) dt = -(this.dots[i].rxy[1] - this.diameter / 2) / this.dots[i].vxy[1];
+              if (wallIndex === 3) dt = (this.height - this.diameter / 2 - this.dots[i].rxy[1]) / this.dots[i].vxy[1];
+              if (wallIndex === 4) dt = -(this.dots[i].rxy[0] - this.diameter / 2) / this.dots[i].vxy[0];
+              if (wallIndex === 2) dt = (this.width - this.diameter / 2 - this.dots[i].rxy[0]) / this.dots[i].vxy[0];
+            // dv = 2 * this.vs[i];
+            //   dx = 2 * ((dv > 0 ? this.width : 0) - this.xs[i]);
+            }
+            console.log("(dt, dtMin) are ", dt, dtMin);
+            if (dt < dtMin) {
+              console.log("That was a shorter time.");
+              [dtMin, iMin, jMin, wallIndexMin] = [dt, i, j, wallIndex];
             }
             // if (Math.sign(dot) === -1) {
             //   // dt = (Math.abs(dx) - this.diameter) / Math.abs(dv);
@@ -88,21 +117,23 @@ export default {
             // }
           }
         }
-        this.dots.forEach((dot, i) => {
-          this.dots[i].x = this.dots[i].x + this.dots[i].vx * dtMin;
-          this.dots[i].y = this.dots[i].y + this.dots[i].vy * dtMin;
-        })
-        // this.xs = this.xs.map((x, i) => x + this.vs[i] * dtMin);
-        this.dtNext = dtMin;
+        this.dots.forEach((dot, i) => dot.rxy.forEach((comp, j) => this.dots[i].rxy[j] += dot.vxy[j] * dtMin));
+        this.dt = dtMin;
+        console.log("iMin = ", iMin);
+        if (iMin === jMin) this.dots[iMin].vxy[wallIndexMin % 2] *= -1;
+        // if (wallIndex) {
+        //   this.dots[iMin].
+        // }
         // if (iMin !== jMin) {
         //   [this.vs[iMin], this.vs[jMin]] = [this.vs[jMin], this.vs[iMin]];
         // } else {
         //   this.vs[iMin] *= -1;
         // }
-        this.time += this.running ? this.dtNext : 0;
+        this.time += this.running ? this.dt : 0;
       }
       this.numCol++;
-      this.timeout = setTimeout(this.increment, this.dtNext * 1000);
+      console.log("this.dt = ", this.dt);
+      if (this.numCol < 7) this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },
   created() {this.increment()}

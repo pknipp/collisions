@@ -98,7 +98,6 @@ export default {
               wallIndex = 0;
             } else {
               wallIndex = this.whichWall(this.dots[i]);
-              console.log("Wall bounce into #", wallIndex);
               if (wallIndex === 1) dt = -(this.dots[i].rxy[1] - this.diameter / 2) / this.dots[i].vxy[1];
               if (wallIndex === 3) dt = (this.height - this.diameter / 2 - this.dots[i].rxy[1]) / this.dots[i].vxy[1];
               if (wallIndex === 4) dt = -(this.dots[i].rxy[0] - this.diameter / 2) / this.dots[i].vxy[0];

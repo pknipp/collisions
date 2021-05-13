@@ -32,7 +32,7 @@ export default {
       // units are px and px/s
       dots: [
         {id: 1, rxy: [200, 300], vxy: [400, -200]},
-        {id: 2, rxy: [400, 500], vxy: [1,1]},
+        {id: 2, rxy: [400, 500], vxy: [100,200]},
       ],
       diameter: 100,
       numCol: 0,
@@ -63,7 +63,7 @@ export default {
       return ds / Math.sqrt(dv2);
     },
     whichWall: function (dot) {
-      // walls are numbered 0 (top), 1 (right), 2 (bottom), 3 (left)
+      // walls are numbered 1 (top), 2 (right), 3 (bottom), 4 (left)
       if (dot.vxy[1]>0 && dot.vxy[0]>0) {
         return (dot.vxy[1]*(this.width-this.diameter/2-dot.rxy[0])>dot.vxy[0]*(this.height-this.diameter/2-dot.rxy[1]))?3:2;
       }
@@ -89,8 +89,8 @@ export default {
             let dt = Infinity;
             console.log("(i, j) = ", i, j);
             if (j !== i) {
-              dv = [this.dots[i].vxy[0]-this.dots[j].vxy[0], this.dots[i].vxy[1]-this.dots[j].vxy[1]];
-              dr = [this.dots[i].rxy[0]-this.dots[j].rxy[0], this.dots[i].rxy[1]-this.dots[j].rxy[1]];
+              dv = this.dots[i].vxy.map((vcomp, k) => vcomp - this.dots[j].vxy[k]);
+              dr = this.dots[i].rxy.map((rcomp, k) => rcomp - this.dots[j].rxy[k]);
               if (this.willCollide(this.diameter, dr, dv)) {
                 dt = this.timeToCollide(this.diameter, dr, dv);
               }
@@ -133,7 +133,7 @@ export default {
       }
       this.numCol++;
       console.log("this.dt = ", this.dt);
-      if (this.numCol < 7) this.timeout = setTimeout(this.increment, this.dt * 1000);
+      this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },
   created() {this.increment()}

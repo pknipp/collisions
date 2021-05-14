@@ -49,7 +49,7 @@ export default {
         {id: 10, diameter: 100, rxy: [1000, 100], vxy: [40, 800]},
       ],
       numCol: 0,
-      dims: [1600, 800],
+      dims: [1700, 800],
       running: true
     }
   },

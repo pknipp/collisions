@@ -62,9 +62,9 @@ export default {
       const theta2 = Math.PI - Math.asin(Math.sqrt(dr2) * Math.sin(theta) / radius);
       const theta3 = Math.PI - theta - theta2;
       const ds = Math.sin(theta3) * radius / Math.sin(theta);
-      // console.log(crossProd, dr2, dv2, theta, theta2, theta3, ds);
       return ds / Math.sqrt(dv2);
     },
+    // In order to DRY up code which uses this, change return from scalar to 2-component array.
     whichWall: function (dot) {
       // walls are numbered 1 (top), 2 (right), 3 (bottom), 4 (left)
       if (dot.vxy[1]>0 && dot.vxy[0]>0) {
@@ -83,43 +83,30 @@ export default {
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
       if (this.numCol) {
-        // console.log("time = ", this.time, "vxy = ", this.dots[0].vxy);
-        // this.dtLast = this.dtNext;
         let dtMin = Infinity;
-        let dv, dr, wallIndex, wallIndexMin, iMin, jMin;//, dot;
+        let dv, dr, wallIndex, wallIndexMin, iMin, jMin;
         for (let i = 0; i < this.dots.length; i++) {
           for (let j = i; j < this.dots.length; j++) {
             let dt = Infinity;
-            console.log("(i, j) = ", i, j);
             if (j !== i) {
+              // relative velocity and position (vectors) of two dots
               dv = this.dots[i].vxy.map((vcomp, k) => vcomp - this.dots[j].vxy[k]);
               dr = this.dots[i].rxy.map((rcomp, k) => rcomp - this.dots[j].rxy[k]);
-              console.log("dr = ", dr, " and dv = ", dv);
+              // coarse requirement which must be met, if inter-dot collision is to occur.
               if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
-                if (this.willCollide(this.diameter, dr, dv)) {
-                  dt = this.timeToCollide(this.diameter, dr, dv);
-                  console.log("dt = ", dt, "dr = ", dr, "dv = ", dv);
-                }
+                // precise requirement for inter-dot collision
+                if (this.willCollide(this.diameter, dr, dv)) dt = this.timeToCollide(this.diameter, dr, dv);
               }
-              wallIndex = 0;
+              wallIndex = 0; // this means that next collision is NOT with a wall.
             } else {
               wallIndex = this.whichWall(this.dots[i]);
+              // DRY up the following, by changing wallIndex from a scalar to a 2-component array.
               if (wallIndex === 1) dt = -(this.dots[i].rxy[1] - this.diameter / 2) / this.dots[i].vxy[1];
               if (wallIndex === 3) dt = (this.height - this.diameter / 2 - this.dots[i].rxy[1]) / this.dots[i].vxy[1];
               if (wallIndex === 4) dt = -(this.dots[i].rxy[0] - this.diameter / 2) / this.dots[i].vxy[0];
               if (wallIndex === 2) dt = (this.width - this.diameter / 2 - this.dots[i].rxy[0]) / this.dots[i].vxy[0];
-            // dv = 2 * this.vs[i];
-            //   dx = 2 * ((dv > 0 ? this.width : 0) - this.xs[i]);
             }
-            console.log("(dt, dtMin) are ", dt, dtMin);
-            if (dt < dtMin) {
-              console.log("That was a shorter time.");
-              [dtMin, iMin, jMin, wallIndexMin] = [dt, i, j, wallIndex];
-            }
-            // if (Math.sign(dot) === -1) {
-            //   // dt = (Math.abs(dx) - this.diameter) / Math.abs(dv);
-            //   // if (dt < dtMin)[iMin, jMin, dtMin] = [i, j, dt];
-            // }
+            if (dt < dtMin) [dtMin, iMin, jMin, wallIndexMin] = [dt, i, j, wallIndex];
           }
         }
         // Change each dot's coordinates until the moment of the next collision.
@@ -155,19 +142,9 @@ export default {
           this.dots[iMin].vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
           this.dots[jMin].vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
         }
-        // if (wallIndex) {
-        //   this.dots[iMin].
-        // }
-        // if (iMin !== jMin) {
-        //   [this.vs[iMin], this.vs[jMin]] = [this.vs[jMin], this.vs[iMin]];
-        // } else {
-        //   this.vs[iMin] *= -1;
-        // }
         this.time += this.running ? this.dt : 0;
       }
-      console.log("postcollision velocities are ", this.dots[0].vxy, " and ", this.dots[1].vxy);
       this.numCol++;
-      // console.log("this.dt = ", this.dt);
       this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },

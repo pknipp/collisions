@@ -31,10 +31,13 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, rxy: [200, 300], vxy: [400, -200]},
-        {id: 2, rxy: [400, 500], vxy: [100,200]},
+        {id: 1, rxy: [200, 300], vxy: [800, .1]},
+        {id: 2, rxy: [400, 301], vxy: [0,0]},
+        {id: 3, rxy: [600, 200], vxy: [0, 900]},
+        {id: 4, rxy: [800, 500], vxy: [500, 500]},
+        {id: 5, rxy: [1000, 100], vxy: [400, 800]},
       ],
-      diameter: 100,
+      diameter: 200,
       numCol: 0,
       width: 1200,
       height: 700,
@@ -80,7 +83,7 @@ export default {
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
       if (this.numCol) {
-        console.log("time = ", this.time, "vxy = ", this.dots[0].vxy);
+        // console.log("time = ", this.time, "vxy = ", this.dots[0].vxy);
         // this.dtLast = this.dtNext;
         let dtMin = Infinity;
         let dv, dr, wallIndex, wallIndexMin, iMin, jMin;//, dot;
@@ -91,10 +94,13 @@ export default {
             if (j !== i) {
               dv = this.dots[i].vxy.map((vcomp, k) => vcomp - this.dots[j].vxy[k]);
               dr = this.dots[i].rxy.map((rcomp, k) => rcomp - this.dots[j].rxy[k]);
-              if (this.willCollide(this.diameter, dr, dv)) {
-                dt = this.timeToCollide(this.diameter, dr, dv);
+              console.log("dr = ", dr, " and dv = ", dv);
+              if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
+                if (this.willCollide(this.diameter, dr, dv)) {
+                  dt = this.timeToCollide(this.diameter, dr, dv);
+                  console.log("dt = ", dt, "dr = ", dr, "dv = ", dv);
+                }
               }
-              // dot = dv.reduce((dot, vcomp, i) => dot + vcomp * dr[i]);
               wallIndex = 0;
             } else {
               wallIndex = this.whichWall(this.dots[i]);
@@ -116,10 +122,39 @@ export default {
             // }
           }
         }
+        // Change each dot's coordinates until the moment of the next collision.
         this.dots.forEach((dot, i) => dot.rxy.forEach((comp, j) => this.dots[i].rxy[j] += dot.vxy[j] * dtMin));
         this.dt = dtMin;
-        console.log("iMin = ", iMin);
-        if (iMin === jMin) this.dots[iMin].vxy[wallIndexMin % 2] *= -1;
+        let v_cm;
+        if (iMin === jMin) {
+          console.log("this was a wall collision");
+          // If the collision was with a wall, negate the appropriate component of the relevant dot's velocity.
+          this.dots[iMin].vxy[wallIndexMin % 2] *= -1;
+        } else {
+          // If the collision was between two dots, the procedure is more complicated.
+          // First, shift into center-of-mass frame of the two colliding objects.
+          v_cm = this.dots[iMin].vxy.map((vcomp, k) => (vcomp + this.dots[jMin].vxy[k])/2);
+          let vi = this.dots[iMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
+          let vj = this.dots[jMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
+
+          // vector (and squared magnitude) which points in direction of normal force
+          dr = this.dots[iMin].rxy.map((rcomp, k) => rcomp - this.dots[jMin].rxy[k]);
+          let dr2 = dr.reduce((dr2, comp) => dr2 + comp * comp, 0);
+
+          // projection of one velocity along the normal force
+          dv = this.dots[iMin].vxy.map((vcomp, k) => vcomp - this.dots[jMin].vxy[k]);
+          let dot = dr.reduce((dot, rcomp, k) => dot + rcomp * dv[k], 0);
+          dv = dr.map(comp => comp * dot / dr2);
+          console.log("dot = ", dot, " dr2 = ", dr2, " dv = ", dv)
+
+          // transfer velocity change from one object to the other:
+          vi = vi.map((comp, k) => comp - 1 * dv[k]);
+          vj = vj.map((comp, k) => comp + 1 * dv[k]);
+
+          // Shift back to lab frame.
+          this.dots[iMin].vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
+          this.dots[jMin].vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
+        }
         // if (wallIndex) {
         //   this.dots[iMin].
         // }
@@ -130,8 +165,9 @@ export default {
         // }
         this.time += this.running ? this.dt : 0;
       }
+      console.log("postcollision velocities are ", this.dots[0].vxy, " and ", this.dots[1].vxy);
       this.numCol++;
-      console.log("this.dt = ", this.dt);
+      // console.log("this.dt = ", this.dt);
       this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },

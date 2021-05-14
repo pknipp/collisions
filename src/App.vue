@@ -4,12 +4,18 @@
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button>
     <div>time = {{time.toFixed(2)}} s, numCol = {{numCol}}</div>
-    <div class="container" v-bind:style="{width: dims[0] + 'px', height: dims[1] + 'px'}">
+    <div class="container" v-bind:style="{
+      width: dims[0] + 'px',
+      height: dims[1] + 'px',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'black',
+    }">
       <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
-        left:dot.rxy[0] + 'px',
-        top:dot.rxy[1] + 'px',
-        height: diameter + 'px',
-        width: diameter + 'px',
+        left:(dot.rxy[0] - dot.diameter/2) + 'px',
+        top:(dot.rxy[1] - dot.diameter/2) + 'px',
+        height: dot.diameter + 'px',
+        width: dot.diameter + 'px',
         transitionDuration: dt + 's'
       }"></div>
     </div>
@@ -31,15 +37,19 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, rxy: [200, 300], vxy: [800, 0]},
-        {id: 2, rxy: [500, 300], vxy: [0,0]},
-        {id: 3, rxy: [600, 200], vxy: [0, 900]},
-        {id: 4, rxy: [800, 500], vxy: [500, 500]},
-        {id: 5, rxy: [1000, 100], vxy: [400, 800]},
+        {id: 1, diameter: 50, rxy: [200, 300], vxy: [80, 3]},
+        {id: 2, diameter: 100, rxy: [500, 300], vxy: [100,2]},
+        {id: 3, diameter: 150, rxy: [600, 200], vxy: [100, 90]},
+        {id: 4, diameter: 50, rxy: [800, 500], vxy: [500, 50]},
+        {id: 5, diameter: 100, rxy: [1000, 100], vxy: [40, 800]},
+        {id: 6, diameter: 50, rxy: [1200, 300], vxy: [80, 3]},
+        {id: 7, diameter: 100, rxy: [500, 700], vxy: [100,2]},
+        {id: 8, diameter: 150, rxy: [700, 700], vxy: [100, 90]},
+        {id: 9, diameter: 50, rxy: [1100, 500], vxy: [500, 50]},
+        {id: 10, diameter: 100, rxy: [1000, 100], vxy: [40, 800]},
       ],
-      diameter: 200,
       numCol: 0,
-      dims: [1500, 700],
+      dims: [1600, 800],
       running: true
     }
   },
@@ -69,16 +79,16 @@ export default {
       // 1st index: whether wall represents min or max value of coordinate
       // DRY up following code?
       if (dot.vxy[1]>=0 && dot.vxy[0]>=0) {
-        return (dot.vxy[1]*(this.dims[0]-this.diameter/2-dot.rxy[0])>dot.vxy[0]*(this.dims[1]-this.diameter/2-dot.rxy[1]))? [ 1, 1] : [0, 1];
+        return (dot.vxy[1]*(this.dims[0]-dot.diameter/2-dot.rxy[0])>dot.vxy[0]*(this.dims[1]-dot.diameter/2-dot.rxy[1]))? [ 1, 1] : [0, 1];
       }
       if (dot.vxy[1]>=0 && dot.vxy[0]<0) {
-        return (dot.vxy[1] * (dot.rxy[0]-this.diameter/2)>-dot.vxy[0]*(this.dims[1]-this.diameter/2-dot.rxy[1]))? [1, 1]: [0, 0];
+        return (dot.vxy[1] * (dot.rxy[0]-dot.diameter/2)>-dot.vxy[0]*(this.dims[1]-dot.diameter/2-dot.rxy[1]))? [1, 1]: [0, 0];
       }
       if (dot.vxy[1]<0 && dot.vxy[0]>=0) {
-        return (-dot.vxy[1]*(this.dims[0] - this.diameter/2 - dot.rxy[0])> dot.vxy[0] * (dot.rxy[1] - this.diameter/2)) ? [1, 0] : [0, 1];
+        return (-dot.vxy[1]*(this.dims[0] - dot.diameter/2 - dot.rxy[0])> dot.vxy[0] * (dot.rxy[1] - dot.diameter/2)) ? [1, 0] : [0, 1];
       }
       if (dot.vxy[1]<0 && dot.vxy[0]<0) {
-        return (-dot.vxy[1]*(dot.rxy[0]-this.diameter/2)>-dot.vxy[0] * (dot.rxy[1]-this.diameter/2)) ? [1, 0] : [0, 0];
+        return (-dot.vxy[1]*(dot.rxy[0]-dot.diameter/2)>-dot.vxy[0] * (dot.rxy[1]-dot.diameter/2)) ? [1, 0] : [0, 0];
       }
     },
     increment: function () {
@@ -90,51 +100,61 @@ export default {
           for (let j = i; j < this.dots.length; j++) {
             let dt = Infinity;
             if (j !== i) {
+              let doti = this.dots[i];
+              let dotj = this.dots[j];
               // relative velocity and position (vectors) of two dots
-              dv = this.dots[i].vxy.map((vcomp, k) => vcomp - this.dots[j].vxy[k]);
-              dr = this.dots[i].rxy.map((rcomp, k) => rcomp - this.dots[j].rxy[k]);
+              dv = doti.vxy.map((vcomp, k) => vcomp - dotj.vxy[k]);
+              dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
+              let totRadius = (doti.diameter + dotj.diameter) / 2;
               // coarse requirement which must be met, if inter-dot collision is to occur.
               if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
                 // precise requirement for inter-dot collision
-                if (this.willCollide(this.diameter, dr, dv)) dt = this.timeToCollide(this.diameter, dr, dv);
+                if (this.willCollide(totRadius, dr, dv)) {
+                  dt = this.timeToCollide(totRadius, dr, dv);
+                  console.log(dt, totRadius, dr, dv);
+                }
               }
-              // wallIndex = 0; // this means that next collision is NOT with a wall.
             } else {
               wallIndex = this.whichWall(this.dots[i]);
               if (wallIndex[1]) {
-                dt = (this.dims[wallIndex[0]] - this.diameter / 2 - this.dots[i].rxy[wallIndex[0]]) / this.dots[i].vxy[wallIndex[0]];
+                // reflects from top & bottom walls
+                dt = (this.dims[wallIndex[0]] - this.dots[i].diameter / 2 - this.dots[i].rxy[wallIndex[0]]) / this.dots[i].vxy[wallIndex[0]];
               } else {
-                dt = -(this.dots[i].rxy[wallIndex[0]] - this.diameter / 2) / this.dots[i].vxy[wallIndex[0]];
+                // reflects from right & left walls
+                dt = -(this.dots[i].rxy[wallIndex[0]] - this.dots[i].diameter / 2) / this.dots[i].vxy[wallIndex[0]];
               }
             }
+            // update the details for the collision which'll occur next
             if (dt < dtMin) [dtMin, iMin, jMin, wallIndexMin] = [dt, i, j, [...wallIndex]];
           }
         }
         // Change each dot's coordinates until the moment of the next collision.
         this.dots.forEach((dot, i) => dot.rxy.forEach((comp, j) => this.dots[i].rxy[j] += dot.vxy[j] * dtMin));
         this.dt = dtMin;
-        let v_cm;
         if (iMin === jMin) {
           // If the collision was with a wall, negate the appropriate component of the relevant dot's velocity.
           this.dots[iMin].vxy[wallIndexMin[0]] *= -1;
         } else {
           // If the collision was between two dots, the procedure is more complicated.
-          // First, shift into center-of-mass frame of the two colliding objects.
-          v_cm = this.dots[iMin].vxy.map((vcomp, k) => (vcomp + this.dots[jMin].vxy[k])/2);
+          // First, shift into the center-of-mass frame of the two colliding objects.
+          let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
+          // Assume that each dot's mass is proportional to the square of its diameter ("colliding rods")
+          let [massi, massj] = [doti.diameter * doti.diameter, dotj.diameter * dotj.diameter];
+          let v_cm = doti.vxy.map((vcomp, k) => (massi * vcomp + massj * dotj.vxy[k]) / (massi + massj));
           let vi = this.dots[iMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
           let vj = this.dots[jMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
 
-          // Next, find vector (and squared magnitude) which points in direction of normal force
+          // Next, find the vector (and its squared magnitude) which points in direction of normal force
           dr = this.dots[iMin].rxy.map((rcomp, k) => rcomp - this.dots[jMin].rxy[k]);
           let dr2 = dr.reduce((dr2, comp) => dr2 + comp * comp, 0);
 
-          // projection of one velocity along the normal force yields the velocity transfer
-          let dot = dr.reduce((dot, rcomp, k) => dot + rcomp * vi[k], 0);
-          dv = dr.map(comp => 2 * comp * dot / dr2);
+          // projection of one momentum along the normal force yields the momentum transfer
+          let dot = dr.reduce((dot, rcomp, k) => dot + rcomp * massi * vi[k], 0);
+          let dp = dr.map(comp => 2 * comp * dot / dr2);
 
-          // transfer velocity change from one object to the other:
-          vi = vi.map((comp, k) => comp - dv[k]);
-          vj = vj.map((comp, k) => comp + dv[k]);
+          // transfer momentum from one object to the other:
+          vi = vi.map((comp, k) => comp - dp[k] / massi);
+          vj = vj.map((comp, k) => comp + dp[k] / massj);
 
           // Shift back to lab frame.
           this.dots[iMin].vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);

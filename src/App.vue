@@ -14,8 +14,10 @@
       <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
         left:(dot.rxy[0] - dot.diameter/2) + 'px',
         top:(dot.rxy[1] - dot.diameter/2) + 'px',
+        zIndex:dot.rxy[2],
         height: dot.diameter + 'px',
         width: dot.diameter + 'px',
+        backgroundColor: 'white',
         transitionDuration: dt + 's'
       }"></div>
     </div>
@@ -37,19 +39,19 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 20, rxy: [200, 300], vxy: [100, 1]},
-        {id: 2, diameter: 40, rxy: [500, 300], vxy: [1,2]},
-        {id: 3, diameter: 60, rxy: [600, 200], vxy: [-100, -90]},
-        {id: 4, diameter: 80, rxy: [800, 500], vxy: [50, 50]},
-        {id: 5, diameter: 100, rxy: [1100, 100], vxy: [-40, -80]},
-        {id: 6, diameter: 120, rxy: [1200, 300], vxy: [80, -300]},
-        {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
-        {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
-        {id: 9, diameter: 180, rxy: [1100, 500], vxy: [-50, -50]},
-        {id: 10, diameter: 200, rxy: [900, 100], vxy: [40, -80]},
+        {id: 1, diameter: 100, rxy: [100, 300, 100], vxy: [0, 0, 0]},
+        {id: 2, diameter: 100, rxy: [500, 300, 150], vxy: [-50, 0, 0]},
+        // {id: 3, diameter: 60, rxy: [600, 200], vxy: [-100, -90]},
+        // {id: 4, diameter: 80, rxy: [800, 500], vxy: [50, 50]},
+        // {id: 5, diameter: 100, rxy: [1100, 100], vxy: [-40, -80]},
+        // {id: 6, diameter: 120, rxy: [1200, 300], vxy: [80, -300]},
+        // {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
+        // {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
+        // {id: 9, diameter: 180, rxy: [1100, 500], vxy: [-50, -50]},
+        // {id: 10, diameter: 200, rxy: [900, 100], vxy: [40, -80]},
       ],
       numCol: 0,
-      dims: [1600, 800],
+      dims: [250, 800],
       running: true
     }
   },

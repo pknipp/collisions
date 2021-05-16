@@ -106,14 +106,21 @@ export default {
               dv = doti.vxy.map((vcomp, k) => vcomp - dotj.vxy[k]);
               dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
               let totRadius = (doti.diameter + dotj.diameter) / 2;
-              // coarse requirement which must be met, if inter-dot collision is to occur.
-              if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
-                // precise requirement for inter-dot collision
-                if (this.willCollide(totRadius, dr, dv)) {
-                  dt = this.timeToCollide(totRadius, dr, dv);
-                  console.log(dt, totRadius, dr, dv);
-                }
+              // set up for use of quadratic formula
+              let a = dv.reduce((dv2, comp) => dv2 + comp * comp, 0);
+              let c = dr.reduce((dr2, comp) => dr2 + comp * comp, 0) - totRadius * totRadius;
+              let b = 2 * dr.reduce((dot, comp, k) => dot + comp * dv[k], 0);
+              let disc = (b * b - 4 * a * c);
+              if (disc > 0) {
+                dt = (-b - Math.sqrt(disc))/ 2 / a;
               }
+              // coarse requirement which must be met, if inter-dot collision is to occur.
+              // if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
+                // precise requirement for inter-dot collision
+                // if (this.willCollide(totRadius, dr, dv)) {
+                //   dt = this.timeToCollide(totRadius, dr, dv);
+                //   console.log(dt, totRadius, dr, dv);
+                // }
             } else {
               wallIndex = this.whichWall(this.dots[i]);
               if (wallIndex[1]) {

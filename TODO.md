@@ -1,5 +1,4 @@
 TO DO:
-Make 2-d logic more extensible to 3-d (ie, remove the trig).
 
 Make 3-d (mass is proportional to CUBE of diameter).
 

@@ -37,8 +37,8 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 20, rxy: [200, 300], vxy: [-80, 300]},
-        {id: 2, diameter: 40, rxy: [500, 300], vxy: [100,-200]},
+        {id: 1, diameter: 20, rxy: [200, 300], vxy: [100, 1]},
+        {id: 2, diameter: 40, rxy: [500, 300], vxy: [1,2]},
         {id: 3, diameter: 60, rxy: [600, 200], vxy: [-100, -90]},
         {id: 4, diameter: 80, rxy: [800, 500], vxy: [50, 50]},
         {id: 5, diameter: 100, rxy: [1100, 100], vxy: [-40, -80]},
@@ -58,22 +58,6 @@ export default {
     clearTimeout(this.timeout)
   },
   methods: {
-    willCollide: function (radius, dr, dv) {
-      const crossProd = dr[0] * dv[1] - dv[0] * dr[1];
-      return crossProd * crossProd < (dv[0] * dv[0] + dv[1] * dv[1]) * radius * radius;
-    },
-    timeToCollide: function (radius, dr, dv) {
-      const crossProd = dr[0] * dv[1] - dv[0] * dr[1];
-      const dr2 = dr.reduce((dr2, comp) => dr2 + comp * comp, 0);
-      const dv2 = dv.reduce((dv2, comp) => dv2 + comp * comp, 0);
-      if (!dv2) return Infinity;
-      const theta = Math.asin(Math.abs(crossProd / Math.sqrt(dr2 * dv2)));
-      const theta2 = Math.PI - Math.asin(Math.sqrt(dr2) * Math.sin(theta) / radius);
-      const theta3 = Math.PI - theta - theta2;
-      // Might sin(theta) ever vanish?
-      const ds = Math.sin(theta3) * radius / Math.sin(theta);
-      return ds / Math.sqrt(dv2);
-    },
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal
       // 1st index: whether wall represents min or max value of coordinate
@@ -107,20 +91,12 @@ export default {
               dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
               let totRadius = (doti.diameter + dotj.diameter) / 2;
               // set up for use of quadratic formula
-              let a = dv.reduce((dv2, comp) => dv2 + comp * comp, 0);
-              let c = dr.reduce((dr2, comp) => dr2 + comp * comp, 0) - totRadius * totRadius;
+              let a = dv.reduce((dv2, comp) => dv2 + comp ** 2, 0);
+              let c = dr.reduce((dr2, comp) => dr2 + comp ** 2, 0) - totRadius * totRadius;
               let b = 2 * dr.reduce((dot, comp, k) => dot + comp * dv[k], 0);
-              let disc = (b * b - 4 * a * c);
-              if (disc > 0) {
-                dt = (-b - Math.sqrt(disc))/ 2 / a;
-              }
-              // coarse requirement which must be met, if inter-dot collision is to occur.
-              // if (dv.reduce((dot, vcomp, k) => dot + vcomp * dr[k], 0) < 0) {
-                // precise requirement for inter-dot collision
-                // if (this.willCollide(totRadius, dr, dv)) {
-                //   dt = this.timeToCollide(totRadius, dr, dv);
-                //   console.log(dt, totRadius, dr, dv);
-                // }
+              let disc = b * b - 4 * a * c;
+              // 1st test if particles are "closing the gap", and then whether collision'll occur
+              if (b <= 0 && disc >= 0) dt = 2 * c / (-b + Math.sqrt(disc));
             } else {
               wallIndex = this.whichWall(this.dots[i]);
               if (wallIndex[1]) {
@@ -143,29 +119,33 @@ export default {
           this.dots[iMin].vxy[wallIndexMin[0]] *= -1;
         } else {
           // If the collision was between two dots, the procedure is more complicated.
-          // First, shift into the center-of-mass frame of the two colliding objects.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
+          // First, shift into the center-of-mass frame of the two colliding objects.
           // Assume that each dot's mass is proportional to the square of its diameter ("colliding rods")
           let [massi, massj] = [doti.diameter * doti.diameter, dotj.diameter * dotj.diameter];
           let v_cm = doti.vxy.map((vcomp, k) => (massi * vcomp + massj * dotj.vxy[k]) / (massi + massj));
-          let vi = this.dots[iMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
-          let vj = this.dots[jMin].vxy.map((vcomp, k) => vcomp - v_cm[k]);
+          let vi = doti.vxy.map((vcomp, k) => vcomp - v_cm[k]);
+          let vj = dotj.vxy.map((vcomp, k) => vcomp - v_cm[k]);
 
           // Next, find the vector (and its squared magnitude) which points in direction of normal force
-          dr = this.dots[iMin].rxy.map((rcomp, k) => rcomp - this.dots[jMin].rxy[k]);
+          dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
           let dr2 = dr.reduce((dr2, comp) => dr2 + comp * comp, 0);
 
-          // projection of one momentum along the normal force yields the momentum transfer
+          // (2x) projection of one momentum along the normal force yields the momentum transfer
           let dot = dr.reduce((dot, rcomp, k) => dot + rcomp * massi * vi[k], 0);
           let dp = dr.map(comp => 2 * comp * dot / dr2);
 
           // transfer momentum from one object to the other:
+          console.log(dp);
+          console.log(vi, vj);
           vi = vi.map((comp, k) => comp - dp[k] / massi);
           vj = vj.map((comp, k) => comp + dp[k] / massj);
+          console.log(vi, vj);
 
           // Shift back to lab frame.
-          this.dots[iMin].vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
-          this.dots[jMin].vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
+          doti.vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
+          dotj.vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
+          console.log(doti.vxy, dotj.vxy);
         }
         // Advance the clock.
         this.time += this.running ? this.dt : 0;

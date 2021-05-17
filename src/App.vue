@@ -47,15 +47,15 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 100, Rxyz: [], rxyz: [800, 400, 0], vxyz: [200, 300, 1000]},
-        {id: 2, diameter: 100, Rxyz: [], rxyz: [1100, 100, 700],vxyz: [-200, 0, -200]},
-        {id: 3, diameter: 100, Rxyz: [], rxyz: [600, 200, 150], vxyz: [-100, -90, 20]},
-        {id: 4, diameter: 100, Rxyz: [], rxyz: [800, 500, 200], vxyz: [50, 50, -30]},
-        {id: 5, diameter: 100, Rxyz: [], rxyz: [1100, 100, 100],vxyz: [-40, -80, 50]},
-        {id: 6, diameter: 100, Rxyz: [], rxyz: [1200, 300, 600],vxyz: [80, -300, 30]},
-        {id: 7, diameter: 100, Rxyz: [], rxyz: [500, 700, 100], vxyz: [-100, 200, 300]},
-        {id: 8, diameter: 100, Rxyz: [], rxyz: [700, 700, 300], vxyz: [100, 90, 10]},
-        {id: 9, diameter: 100, Rxyz: [], rxyz: [1100, 500, 500],vxyz: [-50, -50, 100]},
+        {id: 1, diameter: 110, Rxyz: [], rxyz: [800, 400, 0], vxyz: [200, 300, 1000]},
+        {id: 2, diameter: 120, Rxyz: [], rxyz: [1100, 100, 700],vxyz: [-200, 0, -200]},
+        {id: 3, diameter: 130, Rxyz: [], rxyz: [600, 200, 150], vxyz: [-100, -90, 20]},
+        {id: 4, diameter: 140, Rxyz: [], rxyz: [800, 500, 200], vxyz: [50, 50, -30]},
+        {id: 5, diameter: 150, Rxyz: [], rxyz: [1100, 100, 100],vxyz: [-40, -80, 50]},
+        {id: 6, diameter: 160, Rxyz: [], rxyz: [1200, 300, 600],vxyz: [80, -300, 30]},
+        {id: 7, diameter: 170, Rxyz: [], rxyz: [500, 700, 100], vxyz: [-100, 200, 300]},
+        {id: 8, diameter: 180, Rxyz: [], rxyz: [700, 700, 300], vxyz: [100, 90, 10]},
+        {id: 9, diameter: 190, Rxyz: [], rxyz: [1100, 500, 500],vxyz: [-50, -50, 100]},
         {id: 10,diameter: 100, Rxyz: [], rxyz: [900, 100, 600], vxyz: [40, -80, -200]},
       ],
       numCol: 0,
@@ -146,8 +146,8 @@ export default {
           // If the collision is between two dots, the procedure is more complicated.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
           // First, shift into the center-of-mass frame of the two colliding objects.
-          // Assume that each dot's mass is proportional to the square of its diameter ("colliding rods")
-          let [massi, massj] = [doti.diameter * doti.diameter, dotj.diameter * dotj.diameter];
+          // Assume that each dot's mass is proportional to the cube of its diameter
+          let [massi, massj] = [doti.diameter ** 3, dotj.diameter ** 3];
           let v_cm = doti.vxyz.map((vcomp, k) => (massi * vcomp + massj * dotj.vxyz[k]) / (massi + massj));
           let vi = doti.vxyz.map((vcomp, k) => vcomp - v_cm[k]);
           let vj = dotj.vxyz.map((vcomp, k) => vcomp - v_cm[k]);

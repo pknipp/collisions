@@ -1,7 +1,5 @@
 TO DO:
 
-Make 3-d (mass is proportional to CUBE of diameter).
-
 Make each object a separate component (ie, make this approach more OO)
 
 Enable user to set inputs (like for TSP?).

@@ -8,17 +8,25 @@
       width: dims[0] + 'px',
       height: dims[1] + 'px',
       borderWidth: '1px',
-      borderStyle: 'solid',
       borderColor: 'black',
     }">
       <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
-        left:(dot.rxy[0] - dot.diameter/2) + 'px',
-        top:(dot.rxy[1] - dot.diameter/2) + 'px',
-        zIndex:dot.rxy[2],
-        height: dot.diameter + 'px',
-        width: dot.diameter + 'px',
-        backgroundColor: 'white',
+        left:(dot.Rxyz[0] - dot.Diameter/2) + 'px',
+        top:(dot.Rxyz[1] - dot.Diameter/2) + 'px',
+        zIndex:dot.rxyz[2],
+        height: dot.Diameter + 'px',
+        width: dot.Diameter + 'px',
+        backgroundColor: 'grey',
         transitionDuration: dt + 's'
+      }"></div>
+      <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
+        left:(dot.Rxyz[0] - dot.Diameter/2) + 'px',
+        top:(dot.Rxyz[1] - dot.Diameter/2) + 'px',
+        zIndex:4000,
+        height: dot.Diameter + 'px',
+        width: dot.Diameter + 'px',
+        transitionDuration: dt + 's',
+        borderStyle: 'dashed',
       }"></div>
     </div>
   </div>
@@ -39,16 +47,16 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 250, rxy: [160, 160, 160], vxy: [200, 150, 0]},
-        {id: 2, diameter: 250, rxy: [430, 430, 400], vxy: [3, 4, -50]},
-        {id: 3, diameter: 100, rxy: [600, 200, 150], vxy: [-100, -90, 20]},
-        {id: 4, diameter: 100, rxy: [800, 500, 200], vxy: [50, 50, -30]},
-        {id: 5, diameter: 100, rxy: [1100, 100, 100], vxy: [-40, -80, 50]},
-        {id: 6, diameter: 120, rxy: [1200, 300, 600], vxy: [80, -300, 30]},
-        {id: 7, diameter: 140, rxy: [500, 700, 100], vxy: [-100, 200, 300]},
-        {id: 8, diameter: 160, rxy: [700, 700, 300], vxy: [100, 90, 10]},
-        {id: 9, diameter: 180, rxy: [1100, 500, 500], vxy: [-50, -50, 100]},
-        {id: 10, diameter: 200, rxy: [900, 100, 600], vxy: [40, -80, -200]},
+        {id: 1, diameter: 100, Rxyz: [], rxyz: [800, 400, 0], vxyz: [200, 300, 1000]},
+        {id: 2, diameter: 100, Rxyz: [], rxyz: [1100, 100, 700],vxyz: [-200, 0, -200]},
+        {id: 3, diameter: 100, Rxyz: [], rxyz: [600, 200, 150], vxyz: [-100, -90, 20]},
+        {id: 4, diameter: 100, Rxyz: [], rxyz: [800, 500, 200], vxyz: [50, 50, -30]},
+        {id: 5, diameter: 100, Rxyz: [], rxyz: [1100, 100, 100],vxyz: [-40, -80, 50]},
+        {id: 6, diameter: 100, Rxyz: [], rxyz: [1200, 300, 600],vxyz: [80, -300, 30]},
+        {id: 7, diameter: 100, Rxyz: [], rxyz: [500, 700, 100], vxyz: [-100, 200, 300]},
+        {id: 8, diameter: 100, Rxyz: [], rxyz: [700, 700, 300], vxyz: [100, 90, 10]},
+        {id: 9, diameter: 100, Rxyz: [], rxyz: [1100, 500, 500],vxyz: [-50, -50, 100]},
+        {id: 10,diameter: 100, Rxyz: [], rxyz: [900, 100, 600], vxyz: [40, -80, -200]},
       ],
       numCol: 0,
       dims: [1600, 800, 800],
@@ -60,50 +68,32 @@ export default {
     clearTimeout(this.timeout)
   },
   methods: {
-    whichWall: function (dot) {
-      // 0th index: whether wall is vertical or horizontal
-      // 1st index: whether wall represents min or max value of coordinate
-      // DRY up following code?
-      if (dot.vxy[1]>=0 && dot.vxy[0]>=0) {
-        return (dot.vxy[1]*(this.dims[0]-dot.diameter/2-dot.rxy[0])>dot.vxy[0]*(this.dims[1]-dot.diameter/2-dot.rxy[1]))? [ 1, 1] : [0, 1];
-      }
-      if (dot.vxy[1]>=0 && dot.vxy[0]<0) {
-        return (dot.vxy[1] * (dot.rxy[0]-dot.diameter/2)>-dot.vxy[0]*(this.dims[1]-dot.diameter/2-dot.rxy[1]))? [1, 1]: [0, 0];
-      }
-      if (dot.vxy[1]<0 && dot.vxy[0]>=0) {
-        return (-dot.vxy[1]*(this.dims[0] - dot.diameter/2 - dot.rxy[0])> dot.vxy[0] * (dot.rxy[1] - dot.diameter/2)) ? [1, 0] : [0, 1];
-      }
-      if (dot.vxy[1]<0 && dot.vxy[0]<0) {
-        return (-dot.vxy[1]*(dot.rxy[0]-dot.diameter/2)>-dot.vxy[0] * (dot.rxy[1]-dot.diameter/2)) ? [1, 0] : [0, 0];
-      }
-    },
     walls: function(dims, dot) {
       let radius = dot.diameter / 2;
-      let [rxy, vxy] = [[...dot.rxy], [...dot.vxy]];
+      let [rxyz, vxyz] = [[...dot.rxyz], [...dot.vxyz]];
       let x, y, z, t;
-      vxy.forEach((vcomp, k) => {
+      vxyz.forEach((vcomp, k) => {
         if (vcomp > 0) {
-          vxy[k] *= -1;
-          rxy[k] = dims[k] - rxy[k];
+          vxyz[k] *= -1;
+          rxyz[k] = dims[k] - rxyz[k];
         }
       })
       // 1st: look at x = 0 plane.
-      if (vxy[0]) {
-        t = -(rxy[0] - radius) / vxy[0];
-        y = rxy[1] + vxy[1] * t;
-        z = rxy[2] + vxy[2] * t;
-        console.log("y = ", y)
+      if (vxyz[0]) {
+        t = -(rxyz[0] - radius) / vxyz[0];
+        y = rxyz[1] + vxyz[1] * t;
+        z = rxyz[2] + vxyz[2] * t;
         if (y >= radius && z >= radius) return {index: 0, t};
       }
-      if (vxy[1]) {
+      if (vxyz[1]) {
         // 2nd: look at y = 0 plane.
-        t = -(rxy[1] - radius) / vxy[1];
-        x = rxy[0] + vxy[0] * t;
-        z = rxy[2] + vxy[2] * t;
+        t = -(rxyz[1] - radius) / vxyz[1];
+        x = rxyz[0] + vxyz[0] * t;
+        z = rxyz[2] + vxyz[2] * t;
         if (x >= radius && z >= radius) return {index: 1, t};
       }
       // By process of elimination, it must be z = 0 plane.
-      if (vxy[2]) return {index: 2, t: -(rxy[2] - radius) / vxy[2]};
+      if (vxyz[2]) return {index: 2, t: -(rxyz[2] - radius) / vxyz[2]};
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
@@ -117,8 +107,8 @@ export default {
             if (j !== i) {
               let dotj = this.dots[j];
               // relative velocity and position (vectors) of two dots
-              dv = doti.vxy.map((vcomp, k) => vcomp - dotj.vxy[k]);
-              dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
+              dv = doti.vxyz.map((vcomp, k) => vcomp - dotj.vxyz[k]);
+              dr = doti.rxyz.map((rcomp, k) => rcomp - dotj.rxyz[k]);
               let totRadius = (doti.diameter + dotj.diameter) / 2;
               // set up for use of quadratic formula
               let a = dv.reduce((dv2, comp) => dv2 + comp ** 2, 0);
@@ -130,40 +120,40 @@ export default {
             } else {
               result = this.walls(this.dims, doti);
               dt = result.t;
-              // wallIndex = this.whichWall(this.dots[i]);
-              // if (wallIndex[1]) {
-              //   // reflects from top & bottom walls
-              //   dt = (this.dims[wallIndex[0]] - this.dots[i].diameter / 2 - this.dots[i].rxy[wallIndex[0]]) / this.dots[i].vxy[wallIndex[0]];
-              // } else {
-              //   // reflects from right & left walls
-              //   dt = -(this.dots[i].rxy[wallIndex[0]] - this.dots[i].diameter / 2) / this.dots[i].vxy[wallIndex[0]];
-              // }
             }
             // update the details for the collision which'll occur next
             if (dt < dtMin) [dtMin, iMin, jMin, indexMin] = [dt, i, j, result.index];
           }
         }
         // Change each dot's coordinates until the moment of the next collision.
-        this.dots.forEach((dot, i) => dot.rxy.forEach((comp, j) => this.dots[i].rxy[j] += dot.vxy[j] * dtMin));
-        this.dots.forEach((dot, i) => console.log("i/z/indexMin = ", i, dot.rxy[2], indexMin));
+        this.dots.forEach(dot => {
+          let rxyz = dot.rxyz;
+          rxyz.forEach((comp, j) => rxyz[j] += dot.vxyz[j] * dtMin);
+          let magFactor = 1;
+          let mag = magFactor * rxyz[2] / this.dims[2] + 1;
+          dot.Diameter = dot.diameter * mag;
+          for (let k = 0; k < 2; k++) {
+            dot.Rxyz[k] = (rxyz[k] - this.dims[k] / 2) * mag + this.dims[k] / 2;
+          }
+        });
+        this.dots.forEach((dot, i) => console.log("i/z/indexMin = ", i, dot.rxyz[2], indexMin));
         this.dt = dtMin;
         // The collision changes one or more components of one or two dots.
         if (iMin === jMin) {
           // If the collision was with a wall, negate the appropriate component of the relevant dot's velocity.
-          // this.dots[iMin].vxy[wallIndexMin[0]] *= -1;
-          this.dots[iMin].vxy[indexMin] *= -1;
+          this.dots[iMin].vxyz[indexMin] *= -1;
         } else {
-          // If the collision was between two dots, the procedure is more complicated.
+          // If the collision is between two dots, the procedure is more complicated.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
           // First, shift into the center-of-mass frame of the two colliding objects.
           // Assume that each dot's mass is proportional to the square of its diameter ("colliding rods")
           let [massi, massj] = [doti.diameter * doti.diameter, dotj.diameter * dotj.diameter];
-          let v_cm = doti.vxy.map((vcomp, k) => (massi * vcomp + massj * dotj.vxy[k]) / (massi + massj));
-          let vi = doti.vxy.map((vcomp, k) => vcomp - v_cm[k]);
-          let vj = dotj.vxy.map((vcomp, k) => vcomp - v_cm[k]);
+          let v_cm = doti.vxyz.map((vcomp, k) => (massi * vcomp + massj * dotj.vxyz[k]) / (massi + massj));
+          let vi = doti.vxyz.map((vcomp, k) => vcomp - v_cm[k]);
+          let vj = dotj.vxyz.map((vcomp, k) => vcomp - v_cm[k]);
 
           // Next, find the vector (and its squared magnitude) which points in direction of normal force
-          dr = doti.rxy.map((rcomp, k) => rcomp - dotj.rxy[k]);
+          dr = doti.rxyz.map((rcomp, k) => rcomp - dotj.rxyz[k]);
           let dr2 = dr.reduce((dr2, comp) => dr2 + comp * comp, 0);
 
           // (2x) projection of one momentum along the normal force yields the momentum transfer
@@ -175,8 +165,8 @@ export default {
           vj = vj.map((comp, k) => comp + dp[k] / massj);
 
           // Shift back to lab frame.
-          doti.vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
-          dotj.vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
+          doti.vxyz = vi.map((vcomp, k) => vcomp + v_cm[k]);
+          dotj.vxyz = vj.map((vcomp, k) => vcomp + v_cm[k]);
         }
         // Advance the clock.
         this.time += this.running ? this.dt : 0;
@@ -214,7 +204,6 @@ export default {
   border-style: solid;
   border-color: black;
   border-radius: 50%;
-  top: 100px;
   transition-timing-function: linear;
   transition-property: all;
 }

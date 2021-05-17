@@ -39,19 +39,19 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 100, rxy: [100, 200, 110], vxy: [10, 5, 100]},
-        {id: 2, diameter: 100, rxy: [500, 500, 200], vxy: [200, 1, 2]},
-        {id: 3, diameter: 60, rxy: [600, 200, 500], vxy: [-100, -90, 20]},
-        {id: 4, diameter: 80, rxy: [800, 500, 200], vxy: [50, 50, -30]},
-        {id: 5, diameter: 100, rxy: [1100, 100, 100], vxy: [-40, -80, 50]},
-        {id: 6, diameter: 120, rxy: [1200, 300, 600], vxy: [80, -300, 30]},
-        {id: 7, diameter: 140, rxy: [500, 700, 100], vxy: [-100, 200, 300]},
-        {id: 8, diameter: 160, rxy: [700, 700, 300], vxy: [100, 90, 10]},
-        {id: 9, diameter: 180, rxy: [1100, 500, 500], vxy: [-50, -50, 100]},
-        {id: 10, diameter: 200, rxy: [900, 100, 600], vxy: [40, -80, -200]},
+        {id: 1, diameter: 300, rxy: [300, 400, 500], vxy: [200, 150, 0]},
+        // {id: 2, diameter: 300, rxy: [500, 500, 400], vxy: [3, 4, 5]},
+        // {id: 3, diameter: 100, rxy: [600, 200, 150], vxy: [-100, -90, 20]},
+        // {id: 4, diameter: 100, rxy: [800, 500, 200], vxy: [50, 50, -30]},
+        // {id: 5, diameter: 100, rxy: [1100, 100, 100], vxy: [-40, -80, 50]},
+        // {id: 6, diameter: 120, rxy: [1200, 300, 600], vxy: [80, -300, 30]},
+        // {id: 7, diameter: 140, rxy: [500, 700, 100], vxy: [-100, 200, 300]},
+        // {id: 8, diameter: 160, rxy: [700, 700, 300], vxy: [100, 90, 10]},
+        // {id: 9, diameter: 180, rxy: [1100, 500, 500], vxy: [-50, -50, 100]},
+        // {id: 10, diameter: 200, rxy: [900, 100, 600], vxy: [40, -80, -200]},
       ],
       numCol: 0,
-      dims: [1600, 800, 800],
+      dims: [800, 800, 800],
       running: true
     }
   },
@@ -78,7 +78,9 @@ export default {
       }
     },
     walls: function(dims, dot) {
+      let radius = dot.diameter / 2;
       let [rxy, vxy] = [[...dot.rxy], [...dot.vxy]];
+      let x, y, z, t;
       vxy.forEach((vcomp, k) => {
         if (vcomp > 0) {
           vxy[k] *= -1;
@@ -86,18 +88,22 @@ export default {
         }
       })
       // 1st: look at x = 0 plane.
-      let t = -(rxy[0] - dot.diameter / 2) / vxy[0];
-      let y = rxy[1] + vxy[1] * t;
-      let z = rxy[2] + vxy[2] * t;
-      console.log("y = ", y)
-      if (y >= 0 && z >= 0) return {index: 0, t};
-      // 2nd: look at y = 0 plane.
-      t = -(rxy[1] - dot.diameter / 2) / vxy[1];
-      let x = rxy[0] + vxy[0] * t;
-      z = rxy[2] + vxy[2] * t;
-      if (x >= 0 && z >= 0) return {index: 1, t};
+      if (vxy[0]) {
+        t = -(rxy[0] - radius) / vxy[0];
+        y = rxy[1] + vxy[1] * t;
+        z = rxy[2] + vxy[2] * t;
+        console.log("y = ", y)
+        if (y >= radius && z >= radius) return {index: 0, t};
+      }
+      if (vxy[1]) {
+        // 2nd: look at y = 0 plane.
+        t = -(rxy[1] - radius) / vxy[1];
+        x = rxy[0] + vxy[0] * t;
+        z = rxy[2] + vxy[2] * t;
+        if (x >= radius && z >= radius) return {index: 1, t};
+      }
       // By process of elimination, it must be z = 0 plane.
-      return {index: 2, t: -(rxy[2] - dot.diameter) / vxy[2]};
+      if (vxy[2]) return {index: 2, t: -(rxy[2] - radius) / vxy[2]};
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting

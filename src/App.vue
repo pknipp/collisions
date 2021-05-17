@@ -2,8 +2,10 @@
   <div id="app">
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
-    <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button>
-    <div>time = {{time.toFixed(2)}} s, numCol = {{numCol}}</div>
+    <button @click="() => {if (running = !running) increment()}">
+      {{running ? "PAUSE" : "START"}}
+    </button>
+    <div>time: {{time.toFixed(2)}} s, number of collisions: {{numCol}}</div>
     <div class="container" v-bind:style="{
       width: dims[0] + 'px',
       height: dims[1] + 'px',
@@ -19,10 +21,10 @@
         backgroundColor: 'grey',
         transitionDuration: dt + 's'
       }"></div>
-      <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
+      <div v-for="dot of dots" :key="'dashed' + dot.id" class="dot" v-bind:style="{
         left:(dot.Rxyz[0] - dot.Diameter/2) + 'px',
         top:(dot.Rxyz[1] - dot.Diameter/2) + 'px',
-        zIndex:4000,
+        zIndex:1000,
         height: dot.Diameter + 'px',
         width: dot.Diameter + 'px',
         transitionDuration: dt + 's',
@@ -60,7 +62,7 @@ export default {
       ],
       numCol: 0,
       dims: [1600, 800, 800],
-      running: true
+      running: false
     }
   },
   beforeDestroy() {
@@ -136,7 +138,6 @@ export default {
             dot.Rxyz[k] = (rxyz[k] - this.dims[k] / 2) * mag + this.dims[k] / 2;
           }
         });
-        this.dots.forEach((dot, i) => console.log("i/z/indexMin = ", i, dot.rxyz[2], indexMin));
         this.dt = dtMin;
         // The collision changes one or more components of one or two dots.
         if (iMin === jMin) {
@@ -169,10 +170,10 @@ export default {
           dotj.vxyz = vj.map((vcomp, k) => vcomp + v_cm[k]);
         }
         // Advance the clock.
-        this.time += this.running ? this.dt : 0;
+        this.time += this.dt; // this.running ? this.dt : 0;
       }
       this.numCol++;
-      this.timeout = setTimeout(this.increment, this.dt * 1000);
+      if (this.running) this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },
   created() {this.increment()}
@@ -207,5 +208,6 @@ export default {
   transition-timing-function: linear;
   transition-property: all;
 }
+button {z-index: 2000; }
 
 </style>

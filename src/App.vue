@@ -136,16 +136,12 @@ export default {
           let dp = dr.map(comp => 2 * comp * dot / dr2);
 
           // transfer momentum from one object to the other:
-          console.log(dp);
-          console.log(vi, vj);
           vi = vi.map((comp, k) => comp - dp[k] / massi);
           vj = vj.map((comp, k) => comp + dp[k] / massj);
-          console.log(vi, vj);
 
           // Shift back to lab frame.
           doti.vxy = vi.map((vcomp, k) => vcomp + v_cm[k]);
           dotj.vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
-          console.log(doti.vxy, dotj.vxy);
         }
         // Advance the clock.
         this.time += this.running ? this.dt : 0;

@@ -2,7 +2,10 @@
   <div id="app">
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
-    <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button>
+    <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
+    <button @click="() => {if (running = !running) increment()}">
+      {{running ? "PAUSE" : "START"}}
+    </button>
     <div>time = {{time.toFixed(2)}} s, numCol = {{numCol}}</div>
     <div class="container" v-bind:style="{
       width: dims[0] + 'px',
@@ -37,7 +40,7 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 20, rxy: [200, 300], vxy: [100, 1]},
+        {id: 1, diameter: 20, rxy: [200, 300], vxy: [100, 150]},
         {id: 2, diameter: 40, rxy: [500, 300], vxy: [1,2]},
         {id: 3, diameter: 60, rxy: [600, 200], vxy: [-100, -90]},
         {id: 4, diameter: 80, rxy: [800, 500], vxy: [50, 50]},
@@ -50,7 +53,7 @@ export default {
       ],
       numCol: 0,
       dims: [1600, 800],
-      running: true
+      running: false
     }
   },
   beforeDestroy() {
@@ -144,13 +147,14 @@ export default {
           dotj.vxy = vj.map((vcomp, k) => vcomp + v_cm[k]);
         }
         // Advance the clock.
-        this.time += this.running ? this.dt : 0;
+        this.time += this.dt; //this.running ? this.dt : 0;
       }
       this.numCol++;
-      this.timeout = setTimeout(this.increment, this.dt * 1000);
+      if (this.running) this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },
-  created() {this.increment()}
+  created() {
+    this.increment()
     // this.interval = setInterval(this.increment, this.dt);
     // this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
     // if (this.running) {
@@ -158,6 +162,7 @@ export default {
     // } else {
     //   if (this.time) clearInterval(this.interval);
     // }
+  }
 };
 </script>
 

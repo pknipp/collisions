@@ -1,14 +1,10 @@
 TO DO:
 
-Make 3-d (mass is proportional to CUBE of diameter).
-
 Make each object a separate component (ie, make this approach more OO)
 
 Enable user to set inputs (like for TSP?).
 
 Enable user to throw an object.
-
-Enable RUN/PAUSE button.
 
 Decide between two directions below:
 1) n = 2, controls (masses, IC, angular speed, coefficient of restitution) and meters (speeds and angles)

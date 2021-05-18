@@ -128,8 +128,8 @@ export default {
           // If the collision was between two dots, the procedure is more complicated.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
           // First, shift into the center-of-mass frame of the two colliding objects.
-          // Assume that each dot's mass is proportional to the square of its diameter ("colliding rods")
-          let [massi, massj] = [doti.diameter * doti.diameter, dotj.diameter * dotj.diameter];
+          // Assume that each dot's mass is proportional to the cube of its diameter
+          let [massi, massj] = [doti.diameter ** 3, dotj.diameter ** 3];
           let v_cm = doti.vxy.map((vcomp, k) => (massi * vcomp + massj * dotj.vxy[k]) / (massi + massj));
           let vi = doti.vxy.map((vcomp, k) => vcomp - v_cm[k]);
           let vj = dotj.vxy.map((vcomp, k) => vcomp - v_cm[k]);

@@ -3,10 +3,13 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
+    <div>
+      Coefficient of restitution: <input v-model.number="e">
+    </div>
     <button @click="() => {if (running = !running) increment()}">
       {{running ? "PAUSE" : "START"}}
     </button>
-    <div>time = {{time.toFixed(2)}} s, numCol = {{numCol}}</div>
+    <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCol}}</div>
     <div class="container" v-bind:style="{
       width: dims[0] + 'px',
       height: dims[1] + 'px',
@@ -40,19 +43,20 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 20, rxy: [200, 300], vxy: [100, 150]},
-        {id: 2, diameter: 40, rxy: [500, 300], vxy: [1,2]},
-        {id: 3, diameter: 60, rxy: [600, 200], vxy: [-100, -90]},
-        {id: 4, diameter: 80, rxy: [800, 500], vxy: [50, 50]},
-        {id: 5, diameter: 100, rxy: [1100, 100], vxy: [-40, -80]},
-        {id: 6, diameter: 120, rxy: [1200, 300], vxy: [80, -300]},
+        {id: 1, diameter: 20, rxy:  [200, 300], vxy: [100, 50]},
+        {id: 2, diameter: 40, rxy:  [1400, 300], vxy: [-100,46]},
+        {id: 3, diameter: 60, rxy:  [600, 200], vxy: [-100, -90]},
+        {id: 4, diameter: 80, rxy:  [800, 500], vxy: [50, 50]},
+        {id: 5, diameter: 100, rxy:[1100, 100], vxy: [-40, -80]},
+        {id: 6, diameter: 120, rxy:[1200, 300], vxy: [80, -300]},
         {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
         {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
-        {id: 9, diameter: 180, rxy: [1100, 500], vxy: [-50, -50]},
-        {id: 10, diameter: 200, rxy: [900, 100], vxy: [40, -80]},
+        {id: 9, diameter: 180, rxy:[1100, 500], vxy: [-50, -50]},
+        {id: 10, diameter: 200, rxy:[900, 100], vxy: [40, -80]},
       ],
       numCol: 0,
       dims: [1600, 800],
+      e: 1,
       running: false
     }
   },
@@ -119,7 +123,7 @@ export default {
         this.dt = dtMin;
         if (iMin === jMin) {
           // If the collision was with a wall, negate the appropriate component of the relevant dot's velocity.
-          this.dots[iMin].vxy[wallIndexMin[0]] *= -1;
+          this.dots[iMin].vxy[wallIndexMin[0]] *= -this.e;
         } else {
           // If the collision was between two dots, the procedure is more complicated.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
@@ -136,7 +140,7 @@ export default {
 
           // (2x) projection of one momentum along the normal force yields the momentum transfer
           let dot = dr.reduce((dot, rcomp, k) => dot + rcomp * massi * vi[k], 0);
-          let dp = dr.map(comp => 2 * comp * dot / dr2);
+          let dp = dr.map(comp => (1 + this.e) * comp * dot / dr2);
 
           // transfer momentum from one object to the other:
           vi = vi.map((comp, k) => comp - dp[k] / massi);

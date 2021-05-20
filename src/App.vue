@@ -10,31 +10,52 @@
       {{running ? "PAUSE" : "START"}}
     </button>
     <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCol}}</div>
-    <div class="container" v-bind:style="{
-      width: dims[0] + 'px',
-      height: dims[1] + 'px',
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderColor: 'black',
-    }">
-      <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
-        left:(dot.rxy[0] - dot.diameter/2) + 'px',
-        top:(dot.rxy[1] - dot.diameter/2) + 'px',
-        height: dot.diameter + 'px',
-        width: dot.diameter + 'px',
-        transitionDuration: dt + 's'
-      }"></div>
+    <div class="container">
+      <div class="sphere-container" v-bind:style="{
+        width: dims[0] + 'px',
+        height: dims[1] + 'px',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: 'black',
+      }">
+        <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
+          left:(dot.rxy[0] - dot.diameter/2) + 'px',
+          top:(dot.rxy[1] - dot.diameter/2) + 'px',
+          height: dot.diameter + 'px',
+          width: dot.diameter + 'px',
+          transitionDuration: dt + 's'
+        }"></div>
+      </div>
+      <table class="inputs">
+        <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
+        <thead>
+        <tr><th>diam</th><th>x</th><th>y</th><th>speed</th><th>dir</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="dot of dots" :key="dot.id">
+            <td><input v-if="!running" v-model.number="dot.diameter"><span v-if="running">{{dot.diameter}}</span></td>
+            <td><input v-if="!running" v-model.number="dot.rxy[0]"><span v-if="running">{{dot.rxy[0].toFixed(0)}}</span></td>
+            <td><input v-if="!running" v-model.number="dot.rxy[1]"><span v-if="running">{{dot.rxy[1].toFixed(0)}}</span></td>
+            <td><input v-if="!running" v-model.number="dot.v"><span v-if="running">{{dot.v.toFixed(1)}}</span></td>
+            <td><input v-if="!running" v-model.number="dot.theta"><span v-if="running">{{dot.theta.toFixed(1)}}</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script>
 // import HelloWorld from "./components/HelloWorld.vue";
+// import SimpleVueTable from './simple-vue-table';
 
 export default {
   name: "App",
   // components: {
   //   HelloWorld,
+  // },
+  // components: {
+  //   SimpleVueTable,
   // },
   data() {
     return {
@@ -43,19 +64,38 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 20, rxy:  [200, 300], vxy: [100, 50]},
-        {id: 2, diameter: 40, rxy:  [1400, 300], vxy: [-100,46]},
-        {id: 3, diameter: 60, rxy:  [600, 200], vxy: [-100, -90]},
-        {id: 4, diameter: 80, rxy:  [800, 500], vxy: [50, 50]},
-        {id: 5, diameter: 100, rxy:[1100, 100], vxy: [-40, -80]},
-        {id: 6, diameter: 120, rxy:[1200, 300], vxy: [80, -300]},
-        {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
-        {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
-        {id: 9, diameter: 180, rxy:[1100, 500], vxy: [-50, -50]},
-        {id: 10, diameter: 200, rxy:[900, 100], vxy: [40, -80]},
+        {id: 1, diameter: 200, rxy: [100, 300], v: 100, vxy: [], theta: 30},
+        {id: 2, diameter: 300, rxy: [400, 600], v: 300, vxy: [], theta: 70}
+        // {id: 2, diameter: 40, rxy:  [400, 300], vxy: [-100,46]},
+        // {id: 3, diameter: 60, rxy:  [600, 200], vxy: [-100, -90]},
+        // {id: 4, diameter: 80, rxy:  [700, 500], vxy: [50, 50]},
+        // {id: 5, diameter: 100, rxy:[100, 100], vxy: [-40, -80]},
+        // {id: 6, diameter: 120, rxy:[200, 300], vxy: [80, -300]},
+        // {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
+        // {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
+        // {id: 9, diameter: 180, rxy:[100, 500], vxy: [-50, -50]},
+        // {id: 10, diameter: 100, rxy:[690, 100], vxy: [40, -80]},
       ],
+      // items: [
+      //   { id: 1, username: "Curran Wong", contact: "16690110 3116", email: "Mauris.eu@volutpat.net" },
+      //   { id: 2, username: "Donovan Lambert", contact: "16670921 6862", email: "ante.dictum.cursus@natoque.ca" },
+      //   { id: 3, username: "Austin Lindsay", contact: "16591004 4485", email: "non.bibendum.sed@dictummi.com" },
+      //   { id: 4, username: "Jerome Velazquez", contact: "16060105 2525", email: "magna@Etiamimperdiet.com" },
+      //   { id: 5, username: "Alden Hudson", contact: "16880710 2754", email: "torquent@enim.org" },
+      //   { id: 6, username: "Gregory Britt", contact: "16260904 9933", email: "nostra.per@velconvallisin.net" },
+      //   { id: 7, username: "Jarrod Mcconnell", contact: "16930717 4434", email: "metus@acarcu.org" },
+      //   { id: 8, username: "Leonard Pitts", contact: "16690125 6773", email: "a.dui.Cras@utaliquam.com" },
+      //   { id: 9, username: "Jamal Sanders", contact: "16070716 6989", email: "Aliquam.erat@odio.edu" },
+      //   { id: 10, username: "Armand Barry", contact: "16170519 4759", email: "non.hendrerit@ipsum.edu" }
+      // ],
+      // columns: [
+      //   { name: 'id', text: 'User ID' },
+      //   { name: 'username', text: 'Name' },
+      //   { name: 'contact', text: 'Contact No.' },
+      //   { name: 'email', text: 'Email Address' }
+      // ],
       numCol: 0,
-      dims: [1600, 800],
+      dims: [800, 800],
       e: 1,
       running: false
     }
@@ -84,9 +124,16 @@ export default {
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
+      this.dots.forEach(dot => {
+        let theta = dot.theta * Math.PI / 180;
+        dot.vxy[0] = dot.v * Math.cos(theta);
+        dot.vxy[1] = dot.v * Math.sin(theta);
+      });
+      // console.log(this.dots[0].vx, this.dots[0].vy);
       if (this.numCol) {
         let dtMin = Infinity;
-        let dv, dr, wallIndex, wallIndexMin, iMin, jMin;
+        let dv, dr, wallIndexMin, iMin, jMin; //wallIndex;
+        let wallIndex = [];
         for (let i = 0; i < this.dots.length; i++) {
           for (let j = i; j < this.dots.length; j++) {
             let dt = Infinity;
@@ -154,6 +201,10 @@ export default {
         this.time += this.dt; //this.running ? this.dt : 0;
       }
       this.numCol++;
+      this.dots.forEach(dot => {
+        dot.v = Math.sqrt((dot.vxy[0] ** 2) + (dot.vxy[1] ** 2));
+        dot.theta = 180 * Math.atan2(dot.vxy[1], dot.vxy[0]) / Math.PI;
+      })
       if (this.running) this.timeout = setTimeout(this.increment, this.dt * 1000);
     }
   },
@@ -180,7 +231,8 @@ export default {
   margin-top: 60px;
 }
 
-.container { position: relative; }
+.container { display: flex; }
+.sphere-container { position: relative; }
 .dot {
   position: absolute;
   box-sizing: border-box;

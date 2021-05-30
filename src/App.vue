@@ -29,25 +29,29 @@
       <table class="inputs">
         <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
         <thead>
-          <tr><th>#</th><th v-for="col of cols" :key="col.id">{{col.name}}</th></tr>
+          <tr><td colspan='6'><button @click="addOne">Add another particle</button> whose parameters are randomly chosen from the max/min values below.</td></tr>
+          <tr><th></th>
+            <!-- <th>#</th> -->
+            <th v-for="col of cols" :key="col.id">{{col.name}}</th></tr>
+            <tr>
+            <td>min<br/>max</td>
+            <!-- <td v-for="col of cols" :key="col.id">{{col.min}} to {{col.max}}</td> -->
+            <td v-for="col of cols" :key="col.id">
+              <input v-model.number="col.min"><br/><input v-model.number="col.max">
+            </td>
+          </tr>
         </thead>
         <tbody>
+          <tr><td colspan='6'>Parameters for collection of {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}</td></tr>
           <tr v-for="dot of dots" :key="dot.id">
-            <td>{{dot.id}}</td>
+            <!-- <td>{{dot.id}}</td> -->
+            <td></td>
             <td><input v-if="!running" v-model.number="dot.diameter"><span v-if="running">{{dot.diameter}}</span></td>
             <td><input v-if="!running" v-model.number="dot.rxy[0]"><span v-if="running">{{dot.rxy[0].toFixed(0)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.rxy[1]"><span v-if="running">{{dot.rxy[1].toFixed(0)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.v"><span v-if="running">{{dot.v.toFixed(1)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.theta"><span v-if="running">{{dot.theta.toFixed(1)}}</span></td>
           </tr>
-          <tr>
-            <td>min values<br/>max values</td>
-            <!-- <td v-for="col of cols" :key="col.id">{{col.min}} to {{col.max}}</td> -->
-            <td v-for="col of cols" :key="col.id">
-              <input v-model.number="col.min"><br/><input v-model.number="col.max">
-            </td>
-          </tr>
-          <tr><td colspan='6'><button @click="addOne">add another particle</button></td></tr>
         </tbody>
       </table>
 
@@ -119,13 +123,12 @@ export default {
     addOne: function () {
       console.log(this.dots);
       let newDot = {id: this.dots.length};
-      console.log("this.cols = ", this.cols);
-      this.cols.forEach(col => newDot[col.name] = col.min + (col.max - col.min) * Math.random());
+      this.cols.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
       newDot.rxy = [newDot.x, newDot.y];
-      console.log("newDot.x = ", newDot.x);
-      console.log("newDot = ", newDot);
+      let theta = newDot.theta * Math.PI / 180;
+      newDot.vxy = [Math.cos(theta), Math.sin(theta)];
+      newDot.vxy = newDot.vxy.map(vcomp => vcomp * newDot.v);
       this.dots.push(newDot);
-      console.log(this.dots);
     },
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal

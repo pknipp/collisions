@@ -29,18 +29,28 @@
       <table class="inputs">
         <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
         <thead>
-        <tr><th>diam</th><th>x</th><th>y</th><th>speed</th><th>dir</th></tr>
+          <tr><th>#</th><th v-for="col of cols" :key="col.id">{{col.name}}</th></tr>
         </thead>
         <tbody>
           <tr v-for="dot of dots" :key="dot.id">
+            <td>{{dot.id}}</td>
             <td><input v-if="!running" v-model.number="dot.diameter"><span v-if="running">{{dot.diameter}}</span></td>
             <td><input v-if="!running" v-model.number="dot.rxy[0]"><span v-if="running">{{dot.rxy[0].toFixed(0)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.rxy[1]"><span v-if="running">{{dot.rxy[1].toFixed(0)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.v"><span v-if="running">{{dot.v.toFixed(1)}}</span></td>
             <td><input v-if="!running" v-model.number="dot.theta"><span v-if="running">{{dot.theta.toFixed(1)}}</span></td>
           </tr>
+          <tr>
+            <td>min values<br/>max values</td>
+            <!-- <td v-for="col of cols" :key="col.id">{{col.min}} to {{col.max}}</td> -->
+            <td v-for="col of cols" :key="col.id">
+              <input v-model.number="col.min"><br/><input v-model.number="col.max">
+            </td>
+          </tr>
+          <tr><td colspan='6'><button @click="addOne">add another particle</button></td></tr>
         </tbody>
       </table>
+
     </div>
   </div>
 </template>
@@ -64,8 +74,9 @@ export default {
       dt: 0,
       // units are px and px/s
       dots: [
-        {id: 1, diameter: 200, rxy: [100, 300], v: 100, vxy: [], theta: 30},
-        {id: 2, diameter: 300, rxy: [400, 600], v: 300, vxy: [], theta: 70}
+        // {id: 1, diameter: 100, x: 100, y: 300, v: 500, rxy: [], vxy: [], theta: 30},
+        {id: 0, diameter: 100, rxy: [100, 300], v: 500, vxy: [], theta: 30},
+        // {id: 2, diameter: 300, rxy: [400, 600], v: 300, vxy: [], theta: 70}
         // {id: 2, diameter: 40, rxy:  [400, 300], vxy: [-100,46]},
         // {id: 3, diameter: 60, rxy:  [600, 200], vxy: [-100, -90]},
         // {id: 4, diameter: 80, rxy:  [700, 500], vxy: [50, 50]},
@@ -105,6 +116,17 @@ export default {
     clearTimeout(this.timeout)
   },
   methods: {
+    addOne: function () {
+      console.log(this.dots);
+      let newDot = {id: this.dots.length};
+      console.log("this.cols = ", this.cols);
+      this.cols.forEach(col => newDot[col.name] = col.min + (col.max - col.min) * Math.random());
+      newDot.rxy = [newDot.x, newDot.y];
+      console.log("newDot.x = ", newDot.x);
+      console.log("newDot = ", newDot);
+      this.dots.push(newDot);
+      console.log(this.dots);
+    },
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal
       // 1st index: whether wall represents min or max value of coordinate
@@ -124,13 +146,26 @@ export default {
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
-      this.dots.forEach(dot => {
-        let theta = dot.theta * Math.PI / 180;
-        dot.vxy[0] = dot.v * Math.cos(theta);
-        dot.vxy[1] = dot.v * Math.sin(theta);
-      });
-      // console.log(this.dots[0].vx, this.dots[0].vy);
-      if (this.numCol) {
+      if (!this.numCol) {
+        console.log("this.numCol = 0");
+        this.dots.forEach(dot => {
+          // dot.rxy[0] = dot.x;
+          // dot.rxy[1] = dot.y;
+          let theta = dot.theta * Math.PI / 180;
+          dot.vxy[0] = dot.v * Math.cos(theta);
+          dot.vxy[1] = dot.v * Math.sin(theta);
+        });
+        let cols = ["diameter", "x", "y", "v", "theta"];
+        let mins =[10, 100, 100, 0, -180];
+        let maxs =[90, 700, 700, 100, 180];
+        this.cols = cols.map((col, i) => ({
+          id: i,
+          name: col,
+          min: mins[i],
+          max: maxs[i],
+          rand: true,
+        }));
+      } else {
         let dtMin = Infinity;
         let dv, dr, wallIndexMin, iMin, jMin; //wallIndex;
         let wallIndex = [];

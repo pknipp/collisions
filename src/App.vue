@@ -29,28 +29,30 @@
       <table class="inputs">
         <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
         <thead>
-          <tr><td colspan='6'><button @click="addOne">Add another particle</button> whose parameters are randomly chosen from the max/min values below.</td></tr>
+          <tr>
+            <td colspan='6'><button @click="addOne">Add another particle</button> whose parameters are randomly chosen from the max/min values below.</td></tr>
+          <tr v-if="dots.length > 1"><td colspan='6'><button @click="subtractOne">Remove last particle</button></td></tr>
           <tr><th></th>
             <!-- <th>#</th> -->
-            <th v-for="col of cols" :key="col.id">{{col.name}}</th></tr>
+            <th v-for="col of cols" :key="'heading' + col.id">{{col.name}}</th></tr>
             <tr>
             <td>min<br/>max</td>
-            <!-- <td v-for="col of cols" :key="col.id">{{col.min}} to {{col.max}}</td> -->
-            <td v-for="col of cols" :key="col.id">
-              <input v-model.number="col.min"><br/><input v-model.number="col.max">
+            <td v-for="col of cols" :key="'max/min' + col.id">
+              <span v-if="running">{{col.min}}</span><input v-else v-model.number="col.min">
+              <br/>
+              <span v-if="running">{{col.max}}</span><input v-else v-model.number="col.max">
             </td>
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan='6'>Parameters for collection of {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}</td></tr>
-          <tr v-for="dot of dots" :key="dot.id">
-            <!-- <td>{{dot.id}}</td> -->
-            <td></td>
-            <td><input v-if="!running" v-model.number="dot.diameter"><span v-if="running">{{dot.diameter}}</span></td>
-            <td><input v-if="!running" v-model.number="dot.rxy[0]"><span v-if="running">{{dot.rxy[0].toFixed(0)}}</span></td>
-            <td><input v-if="!running" v-model.number="dot.rxy[1]"><span v-if="running">{{dot.rxy[1].toFixed(0)}}</span></td>
-            <td><input v-if="!running" v-model.number="dot.v"><span v-if="running">{{dot.v.toFixed(1)}}</span></td>
-            <td><input v-if="!running" v-model.number="dot.theta"><span v-if="running">{{dot.theta.toFixed(1)}}</span></td>
+          <tr><td colspan='6'><b>
+            Parameters for {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}
+          </b></td></tr>
+          <tr v-for="dot of dots" :key="dot.id"><td></td>
+            <td v-for="col of cols" :key="'data' + col.id">
+              <span v-if="running">{{dot[col.name].toFixed(0)}}</span>
+              <input v-else v-model.number="dot[col.name]">
+            </td>
           </tr>
         </tbody>
       </table>
@@ -76,39 +78,10 @@ export default {
       timeout: null,
       time: 0,
       dt: 0,
-      // units are px and px/s
+      // units are px, px/s, and degrees
       dots: [
-        // {id: 1, diameter: 100, x: 100, y: 300, v: 500, rxy: [], vxy: [], theta: 30},
-        {id: 0, diameter: 100, rxy: [100, 300], v: 500, vxy: [], theta: 30},
-        // {id: 2, diameter: 300, rxy: [400, 600], v: 300, vxy: [], theta: 70}
-        // {id: 2, diameter: 40, rxy:  [400, 300], vxy: [-100,46]},
-        // {id: 3, diameter: 60, rxy:  [600, 200], vxy: [-100, -90]},
-        // {id: 4, diameter: 80, rxy:  [700, 500], vxy: [50, 50]},
-        // {id: 5, diameter: 100, rxy:[100, 100], vxy: [-40, -80]},
-        // {id: 6, diameter: 120, rxy:[200, 300], vxy: [80, -300]},
-        // {id: 7, diameter: 140, rxy: [500, 700], vxy: [-100, 200]},
-        // {id: 8, diameter: 160, rxy: [700, 700], vxy: [100, 90]},
-        // {id: 9, diameter: 180, rxy:[100, 500], vxy: [-50, -50]},
-        // {id: 10, diameter: 100, rxy:[690, 100], vxy: [40, -80]},
+        {id: 0, diameter: 100, rxy: [100, 300], v: 100, vxy: [], theta: 30},
       ],
-      // items: [
-      //   { id: 1, username: "Curran Wong", contact: "16690110 3116", email: "Mauris.eu@volutpat.net" },
-      //   { id: 2, username: "Donovan Lambert", contact: "16670921 6862", email: "ante.dictum.cursus@natoque.ca" },
-      //   { id: 3, username: "Austin Lindsay", contact: "16591004 4485", email: "non.bibendum.sed@dictummi.com" },
-      //   { id: 4, username: "Jerome Velazquez", contact: "16060105 2525", email: "magna@Etiamimperdiet.com" },
-      //   { id: 5, username: "Alden Hudson", contact: "16880710 2754", email: "torquent@enim.org" },
-      //   { id: 6, username: "Gregory Britt", contact: "16260904 9933", email: "nostra.per@velconvallisin.net" },
-      //   { id: 7, username: "Jarrod Mcconnell", contact: "16930717 4434", email: "metus@acarcu.org" },
-      //   { id: 8, username: "Leonard Pitts", contact: "16690125 6773", email: "a.dui.Cras@utaliquam.com" },
-      //   { id: 9, username: "Jamal Sanders", contact: "16070716 6989", email: "Aliquam.erat@odio.edu" },
-      //   { id: 10, username: "Armand Barry", contact: "16170519 4759", email: "non.hendrerit@ipsum.edu" }
-      // ],
-      // columns: [
-      //   { name: 'id', text: 'User ID' },
-      //   { name: 'username', text: 'Name' },
-      //   { name: 'contact', text: 'Contact No.' },
-      //   { name: 'email', text: 'Email Address' }
-      // ],
       numCol: 0,
       dims: [800, 800],
       e: 1,
@@ -121,7 +94,6 @@ export default {
   },
   methods: {
     addOne: function () {
-      console.log(this.dots);
       let newDot = {id: this.dots.length};
       this.cols.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
       newDot.rxy = [newDot.x, newDot.y];
@@ -129,6 +101,9 @@ export default {
       newDot.vxy = [Math.cos(theta), Math.sin(theta)];
       newDot.vxy = newDot.vxy.map(vcomp => vcomp * newDot.v);
       this.dots.push(newDot);
+    },
+    subtractOne: function () {
+      this.dots.pop();
     },
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal
@@ -150,23 +125,19 @@ export default {
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
       if (!this.numCol) {
-        console.log("this.numCol = 0");
         this.dots.forEach(dot => {
-          // dot.rxy[0] = dot.x;
-          // dot.rxy[1] = dot.y;
           let theta = dot.theta * Math.PI / 180;
-          dot.vxy[0] = dot.v * Math.cos(theta);
-          dot.vxy[1] = dot.v * Math.sin(theta);
+          dot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => dot.v * comp);
+          // dot.vxy = dot.vxy.map(vcomp => vcomp * dot.v);
         });
         let cols = ["diameter", "x", "y", "v", "theta"];
         let mins =[10, 100, 100, 0, -180];
-        let maxs =[90, 700, 700, 100, 180];
+        let maxs =[2 * this.dots[0].diameter, 700, 700, 2 * this.dots[0].v, 180];
         this.cols = cols.map((col, i) => ({
           id: i,
           name: col,
           min: mins[i],
           max: maxs[i],
-          rand: true,
         }));
       } else {
         let dtMin = Infinity;
@@ -240,6 +211,7 @@ export default {
       }
       this.numCol++;
       this.dots.forEach(dot => {
+        [dot.x, dot.y] = dot.rxy;
         dot.v = Math.sqrt((dot.vxy[0] ** 2) + (dot.vxy[1] ** 2));
         dot.theta = 180 * Math.atan2(dot.vxy[1], dot.vxy[0]) / Math.PI;
       })

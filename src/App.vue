@@ -3,13 +3,11 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
-    <div>
-      Coefficient of restitution: <input v-model.number="e">
-    </div>
+    <div>Coefficient of restitution: <input v-model.number="e"></div>
     <button @click="() => {if (running = !running) increment()}">
       {{running ? "PAUSE" : "START"}}
     </button>
-    <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCol}}</div>
+    <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCollision}}</div>
     <div class="container">
       <div class="sphere-container" v-bind:style="{
         width: dims[0] + 'px',
@@ -19,10 +17,11 @@
         borderColor: 'black',
       }">
         <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
-          left:(dot.rxy[0] - dot.diameter/2) + 'px',
-          top:(dot.rxy[1] - dot.diameter/2) + 'px',
+          left:(dot.x - dot.diameter/2) + 'px',
+          top:(dot.y - dot.diameter/2) + 'px',
           height: dot.diameter + 'px',
           width: dot.diameter + 'px',
+          background: '#' + (256 - dot.density).toString(16).repeat(3),
           transitionDuration: dt + 's'
         }"></div>
       </div>
@@ -30,33 +29,42 @@
         <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
         <thead>
           <tr>
-            <td colspan='6'><button @click="addOne">Add another particle</button> whose parameters are randomly chosen from the max/min values below.</td></tr>
-          <tr v-if="dots.length > 1"><td colspan='6'><button @click="subtractOne">Remove last particle</button></td></tr>
+            <td colspan='6'>
+              <button @click="addOne">Add another particle</button>
+              whose parameters are randomly chosen from the max/min values below.
+            </td>
+          </tr>
+          <tr v-if="dots.length > 1">
+            <td colspan='6'>
+              <button @click="subtractOne">Remove last particle</button>
+            </td>
+          </tr>
           <tr><th></th>
-            <!-- <th>#</th> -->
-            <th v-for="col of cols" :key="'heading' + col.id">{{col.name}}</th></tr>
-            <tr>
+            <th v-for="column of columns" :key="'heading' + column.id">{{column.name}}</th>
+          </tr>
+          <tr>
             <td>min<br/>max</td>
-            <td v-for="col of cols" :key="'max/min' + col.id">
-              <span v-if="running">{{col.min}}</span><input v-else v-model.number="col.min">
+            <td v-for="column of columns" :key="'max/min' + column.id">
+              <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min">
               <br/>
-              <span v-if="running">{{col.max}}</span><input v-else v-model.number="col.max">
+              <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max">
             </td>
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan='6'><b>
-            Parameters for {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}
-          </b></td></tr>
+          <tr>
+            <td colspan='6'>
+              <b>Parameters for {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}</b>
+            </td>
+          </tr>
           <tr v-for="dot of dots" :key="dot.id"><td></td>
-            <td v-for="col of cols" :key="'data' + col.id">
-              <span v-if="running">{{dot[col.name].toFixed(0)}}</span>
-              <input v-else v-model.number="dot[col.name]">
+            <td v-for="column of columns" :key="'data' + column.id">
+              <span v-if="running">{{dot[column.name].toFixed(0)}}</span>
+              <input v-else v-model.number="dot[column.name]">
             </td>
           </tr>
         </tbody>
       </table>
-
     </div>
   </div>
 </template>
@@ -80,12 +88,20 @@ export default {
       dt: 0,
       // units are px, px/s, and degrees
       dots: [
-        {id: 0, diameter: 100, rxy: [100, 300], v: 100, vxy: [], theta: 30},
+        {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 100, theta: 30},
       ],
-      numCol: 0,
+      columns: [
+        ["density", 1, 256],
+        ["diameter", 100, 100],
+        ["x", 100, 700],
+        ["y", 100, 700],
+        ["v", 0, 100],
+        ["theta", -180, 180]
+      ].map((col, i) => ({id: i, name: col[0], min: col[1], max: col[2]})),
+      numCollision: 0,
       dims: [800, 800],
       e: 1,
-      running: false
+      running: false,
     }
   },
   beforeDestroy() {
@@ -95,16 +111,13 @@ export default {
   methods: {
     addOne: function () {
       let newDot = {id: this.dots.length};
-      this.cols.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
+      this.columns.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
       newDot.rxy = [newDot.x, newDot.y];
       let theta = newDot.theta * Math.PI / 180;
-      newDot.vxy = [Math.cos(theta), Math.sin(theta)];
-      newDot.vxy = newDot.vxy.map(vcomp => vcomp * newDot.v);
+      newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
       this.dots.push(newDot);
     },
-    subtractOne: function () {
-      this.dots.pop();
-    },
+    subtractOne: function () {this.dots.pop();},
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal
       // 1st index: whether wall represents min or max value of coordinate
@@ -124,21 +137,12 @@ export default {
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
-      if (!this.numCol) {
+      if (!this.numCollision) {
         this.dots.forEach(dot => {
+          dot.rxy = [dot.x, dot.y];
           let theta = dot.theta * Math.PI / 180;
           dot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => dot.v * comp);
-          // dot.vxy = dot.vxy.map(vcomp => vcomp * dot.v);
         });
-        let cols = ["diameter", "x", "y", "v", "theta"];
-        let mins =[10, 100, 100, 0, -180];
-        let maxs =[2 * this.dots[0].diameter, 700, 700, 2 * this.dots[0].v, 180];
-        this.cols = cols.map((col, i) => ({
-          id: i,
-          name: col,
-          min: mins[i],
-          max: maxs[i],
-        }));
       } else {
         let dtMin = Infinity;
         let dv, dr, wallIndexMin, iMin, jMin; //wallIndex;
@@ -184,8 +188,8 @@ export default {
           // If the collision was between two dots, the procedure is more complicated.
           let [doti, dotj] = [this.dots[iMin], this.dots[jMin]];
           // First, shift into the center-of-mass frame of the two colliding objects.
-          // Assume that each dot's mass is proportional to the cube of its diameter
-          let [massi, massj] = [doti.diameter ** 3, dotj.diameter ** 3];
+          // Assume that each dot's mass is proportional to the product of its density and the cube of its diameter
+          let [massi, massj] = [doti.density * doti.diameter ** 3, dotj.density * dotj.diameter ** 3];
           let v_cm = doti.vxy.map((vcomp, k) => (massi * vcomp + massj * dotj.vxy[k]) / (massi + massj));
           let vi = doti.vxy.map((vcomp, k) => vcomp - v_cm[k]);
           let vj = dotj.vxy.map((vcomp, k) => vcomp - v_cm[k]);
@@ -209,7 +213,7 @@ export default {
         // Advance the clock.
         this.time += this.dt; //this.running ? this.dt : 0;
       }
-      this.numCol++;
+      this.numCollision++;
       this.dots.forEach(dot => {
         [dot.x, dot.y] = dot.rxy;
         dot.v = Math.sqrt((dot.vxy[0] ** 2) + (dot.vxy[1] ** 2));
@@ -219,7 +223,7 @@ export default {
     }
   },
   created() {
-    this.increment()
+    // this.increment()
     // this.interval = setInterval(this.increment, this.dt);
     // this.interval = setInterval(() => this.time += this.running ? this.dt / 1000 : 0, this.dt);
     // if (this.running) {
@@ -246,9 +250,10 @@ export default {
 .dot {
   position: absolute;
   box-sizing: border-box;
-  border-width: 1px;
-  border-style: solid;
-  border-color: black;
+  /* border-width: 1px; */
+  /* border-style: solid; */
+  /* border-color: black; */
+  background-color: #787878;
   border-radius: 50%;
   top: 100px;
   transition-timing-function: linear;

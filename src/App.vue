@@ -114,10 +114,13 @@ export default {
   methods: {
     addOne: function () {
       let newDot = {id: this.dots.length};
-      this.columns.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
-      newDot.rxy = [newDot.x, newDot.y];
+      // this.columns.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
+      this.columns.filter(col => !['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
+        newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
+      });
       let theta = newDot.theta * Math.PI / 180;
       newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
+      // newDot.rxy = [newDot.x, newDot.y];
       this.dots.push(newDot);
     },
     subtractOne: function () {this.dots.pop()},

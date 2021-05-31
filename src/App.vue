@@ -3,7 +3,7 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
-    <div>Coefficient of restitution: <input v-model.number="e"></div>
+    <div>Coefficient of restitution: <span v-if="running">{{e}}</span><input v-else v-model.number="e" size="5"></div>
     <button @click="() => {if (running = !running) increment()}">
       {{running ? "PAUSE" : "START"}}
     </button>
@@ -45,9 +45,9 @@
           <tr>
             <td>min<br/>max</td>
             <td v-for="column of columns" :key="'max/min' + column.id">
-              <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min">
+              <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min" size="5">
               <br/>
-              <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max">
+              <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max" size="5">
             </td>
           </tr>
         </thead>
@@ -57,10 +57,13 @@
               <b>Parameters for {{this.dots.length}} particle{{this.dots.length > 1 ? 's' : ''}}</b>
             </td>
           </tr>
-          <tr v-for="dot of dots" :key="dot.id"><td></td>
+          <tr v-for="(dot, index) in dots" :key="dot.id">
+            <td>
+              <button v-if="dots.length > 1" @click="() => subtractSpecificOne(index)">Remove particle</button>
+            </td>
             <td v-for="column of columns" :key="'data' + column.id">
               <span v-if="running">{{dot[column.name].toFixed(0)}}</span>
-              <input v-else v-model.number="dot[column.name]">
+              <input v-else v-model.number="dot[column.name]" size="5">
             </td>
           </tr>
         </tbody>
@@ -92,14 +95,14 @@ export default {
       ],
       columns: [
         ["density", 1, 256],
-        ["diameter", 100, 100],
+        ["diameter", 10, 100],
         ["x", 100, 700],
         ["y", 100, 700],
         ["v", 0, 100],
         ["theta", -180, 180]
       ].map((col, i) => ({id: i, name: col[0], min: col[1], max: col[2]})),
       numCollision: 0,
-      dims: [800, 800],
+      dims: [900, 800],
       e: 1,
       running: false,
     }
@@ -117,7 +120,8 @@ export default {
       newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
       this.dots.push(newDot);
     },
-    subtractOne: function () {this.dots.pop();},
+    subtractOne: function () {this.dots.pop()},
+    subtractSpecificOne: function (index) {this.dots.splice(index, 1)},
     whichWall: function (dot) {
       // 0th index: whether wall is vertical or horizontal
       // 1st index: whether wall represents min or max value of coordinate
@@ -250,9 +254,9 @@ export default {
 .dot {
   position: absolute;
   box-sizing: border-box;
-  /* border-width: 1px; */
-  /* border-style: solid; */
-  /* border-color: black; */
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
   background-color: #787878;
   border-radius: 50%;
   top: 100px;

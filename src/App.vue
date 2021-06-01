@@ -118,9 +118,12 @@ export default {
       this.columns.filter(col => !['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
         newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
+      this.columns.filter(col => ['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
+        newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
+      });
       let theta = newDot.theta * Math.PI / 180;
       newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
-      // newDot.rxy = [newDot.x, newDot.y];
+      newDot.rxy = [newDot.x, newDot.y];
       this.dots.push(newDot);
     },
     subtractOne: function () {this.dots.pop()},
@@ -169,8 +172,11 @@ export default {
               let c = dr.reduce((dr2, comp) => dr2 + comp ** 2, 0) - totRadius * totRadius;
               let b = 2 * dr.reduce((dot, comp, k) => dot + comp * dv[k], 0);
               let disc = b * b - 4 * a * c;
-              // 1st test if particles are "closing the gap", and then whether collision'll occur
-              if (b <= 0 && disc >= 0) dt = 2 * c / (-b + Math.sqrt(disc));
+              // 1st test whether particles already overlap
+              // 2nd confirm that relative velocity is nonzero
+              // 3rd test if particles are approaching (ie, not receding)
+              // 4th test whether two particles'll ever collide
+              if (c > 0 && a > 0 && b < 0 && disc > 0) dt = 2 * c / (-b + Math.sqrt(disc));
             } else {
               wallIndex = this.whichWall(this.dots[i]);
               if (wallIndex[1]) {

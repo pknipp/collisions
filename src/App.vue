@@ -106,6 +106,7 @@ export default {
       dims: [900, 800],
       e: 1,
       running: false,
+      maxCount: 100,
       message:''
     }
   },
@@ -124,25 +125,26 @@ export default {
         newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
       let count = 0;
-      while (count < 100) {
+      while (count < this.maxCount) {
         this.columns.filter(col => ['x', 'y'].includes(col.name)).forEach(col => {
           newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
         });
         count++;
-        let diameterMax = this.diameter.max;
+        let diameterMax = this.columns[1].max;
         this.dots.forEach(dot => {
           let dr2 = [dot.x - newDot.x, dot.y - newDot.y].reduce((dr2, comp) => dr2 + comp * comp, 0);
           diameterMax = Math.min(diameterMax, 2 * Math.sqrt(dr2) - dot.diameter);
         });
-        if (diameterMax >= this.diameter.min) {
-          newDot.diameter = Math.floor(diameter.min + (diameter.max - diameter.min) * Math.random());
+        if (diameterMax >= this.columns[1].min) {
+          newDot.diameter = Math.floor(this.columns[1].min + (diameterMax - this.columns[1].min) * Math.random());
           let theta = newDot.theta * Math.PI / 180;
           newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
           newDot.rxy = [newDot.x, newDot.y];
+          this.message = '';
           return this.dots.push(newDot);
         }
       }
-      this.message = 'Unable to add a particle.';
+      this.message = `App was unable to fit an additional particle after ${this.maxCount} attempts.  Try again.`;
     },
     subtractOne: function () {this.dots.pop()},
     subtractSpecificOne: function (index) {this.dots.splice(index, 1)},

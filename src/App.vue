@@ -121,14 +121,13 @@ export default {
       this.columns.filter(col => !['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
         newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
-      this.columns.filter(col => ['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
-        newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
-      });
       let count = 0;
       while (count < this.maxCount) {
-        this.columns.filter(col => ['x', 'y'].includes(col.name)).forEach(col => {
-          newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
-        });
+        // this.columns.filter(col => ['x', 'y'].includes(col.name)).forEach(col => {
+        //   newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
+        // });
+        newDot.x = Math.floor(this.columns[1].max / 2 + (this.dims[0] - this.columns[1].max) * Math.random());
+        newDot.y = Math.floor(this.columns[1].max / 2 + (this.dims[1] - this.columns[1].max) * Math.random());
         count++;
         let diameterMax = this.columns[1].max;
         this.dots.forEach(dot => {

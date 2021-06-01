@@ -1,9 +1,13 @@
 TO DO:
 
-prevent an added particle from overlapping w/any existing ones
+manage nomenclature of columns more intuitively
+Remove any mention of x.min, x.max, y.min, and y.max?
+Tabulate the mass (but don't make it input-able).
+input coefficient of restitution for each particle, separately
 determine if real-time sorting of n^2 interactions would be more performant than only looking for one w/min dt.
+Reintroduce max/min limits on x & y?
 
-Make each object a separate component (ie, make this approach more OO)
+Make each object a separate component (ie, make this approach more object-oriented)
 
 Enable user to throw an object.
 

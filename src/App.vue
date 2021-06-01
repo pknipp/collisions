@@ -34,6 +34,7 @@
               whose parameters are randomly chosen from the max/min values below.
             </td>
           </tr>
+          <tr v-if="message"><td colspan='6'>{{message}}</td></tr>
           <tr v-if="dots.length > 1">
             <td colspan='6'>
               <button @click="subtractOne">Remove last particle</button>
@@ -105,6 +106,7 @@ export default {
       dims: [900, 800],
       e: 1,
       running: false,
+      message:''
     }
   },
   beforeDestroy() {
@@ -121,10 +123,26 @@ export default {
       this.columns.filter(col => ['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
         newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
-      let theta = newDot.theta * Math.PI / 180;
-      newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
-      newDot.rxy = [newDot.x, newDot.y];
-      this.dots.push(newDot);
+      let count = 0;
+      while (count < 100) {
+        this.columns.filter(col => ['x', 'y'].includes(col.name)).forEach(col => {
+          newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
+        });
+        count++;
+        let diameterMax = this.diameter.max;
+        this.dots.forEach(dot => {
+          let dr2 = [dot.x - newDot.x, dot.y - newDot.y].reduce((dr2, comp) => dr2 + comp * comp, 0);
+          diameterMax = Math.min(diameterMax, 2 * Math.sqrt(dr2) - dot.diameter);
+        });
+        if (diameterMax >= this.diameter.min) {
+          newDot.diameter = Math.floor(diameter.min + (diameter.max - diameter.min) * Math.random());
+          let theta = newDot.theta * Math.PI / 180;
+          newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
+          newDot.rxy = [newDot.x, newDot.y];
+          return this.dots.push(newDot);
+        }
+      }
+      this.message = 'Unable to add a particle.';
     },
     subtractOne: function () {this.dots.pop()},
     subtractSpecificOne: function (index) {this.dots.splice(index, 1)},

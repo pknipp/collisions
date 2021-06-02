@@ -98,8 +98,8 @@ export default {
       columns: [
         ["density", 1, 256],
         ["diameter", 10, 100],
-        ["x", 100, 700],
-        ["y", 100, 700],
+        ["x", 50, 850],
+        ["y", 50, 850],
         ["v", 0, 100],
         ["theta", -180, 180]
       ].map((col, i) => ({id: i, name: col[0], min: col[1], max: col[2]})),

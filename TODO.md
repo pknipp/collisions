@@ -1,6 +1,5 @@
 TO DO:
 include analog clock, to provide reassurance of continuous flow of time?
-Remove any mention of x.min, x.max, y.min, and y.max?
 Tabulate the mass (but don't make it input-able).
 input coefficient of restitution for each particle, separately
 determine if real-time sorting of n^2 interactions would be more performant than only looking for one w/min dt.

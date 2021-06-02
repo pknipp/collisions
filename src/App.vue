@@ -18,7 +18,8 @@
       }">
         <div v-for="dot of dots" :key="dot.id" class="dot" v-bind:style="{
           left:(dot.x - dot.diameter/2) + 'px',
-          top:(dot.y - dot.diameter/2) + 'px',
+          // External and internal y-coordinates are opposites.
+          top:(dims[1] - (dot.y + dot.diameter/2) ) + 'px',
           height: dot.diameter + 'px',
           width: dot.diameter + 'px',
           background: '#' + (256 - dot.density).toString(16).repeat(3),
@@ -137,8 +138,8 @@ export default {
         if (diameterMax >= this.columns[1].min) {
           newDot.diameter = Math.floor(this.columns[1].min + (diameterMax - this.columns[1].min) * Math.random());
           let theta = newDot.theta * Math.PI / 180;
-          newDot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => newDot.v * comp);
-          newDot.rxy = [newDot.x, newDot.y];
+          newDot.vxy = [Math.cos(theta), -Math.sin(theta)].map(comp => newDot.v * comp);
+          newDot.rxy = [newDot.x, -newDot.y];
           this.message = '';
           return this.dots.push(newDot);
         }
@@ -168,9 +169,9 @@ export default {
       // "numCol" means the number of the next collision, w/1-based counting
       if (!this.numCollision) {
         this.dots.forEach(dot => {
-          dot.rxy = [dot.x, dot.y];
+          dot.rxy = [dot.x, this.dims[1] - dot.y];
           let theta = dot.theta * Math.PI / 180;
-          dot.vxy = [Math.cos(theta), Math.sin(theta)].map(comp => dot.v * comp);
+          dot.vxy = [Math.cos(theta), -Math.sin(theta)].map(comp => dot.v * comp);
         });
       } else {
         let dtMin = Infinity;
@@ -248,6 +249,7 @@ export default {
       this.numCollision++;
       this.dots.forEach(dot => {
         [dot.x, dot.y] = dot.rxy;
+        dot.y = this.dims[1] - dot.y;
         dot.v = Math.sqrt((dot.vxy[0] ** 2) + (dot.vxy[1] ** 2));
         dot.theta = 180 * Math.atan2(dot.vxy[1], dot.vxy[0]) / Math.PI;
       })

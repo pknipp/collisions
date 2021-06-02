@@ -42,11 +42,11 @@
             </td>
           </tr>
           <tr><th></th>
-            <th v-for="column of columns" :key="'heading' + column.id">{{column.name}}</th>
+            <th v-for="[name, column] of Object.entries(columns)" :key="'heading' + column.id">{{ name}}</th>
           </tr>
           <tr>
             <td>min<br/>max</td>
-            <td v-for="column of columns" :key="'max/min' + column.id">
+            <td v-for="column of Object.values(columns)" :key="'max/min' + column.id">
               <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min" size="5">
               <br/>
               <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max" size="5">
@@ -63,9 +63,9 @@
             <td>
               <button v-if="dots.length > 1" @click="() => subtractSpecificOne(index)">Remove particle</button>
             </td>
-            <td v-for="column of columns" :key="'data' + column.id">
-              <span v-if="running">{{dot[column.name].toFixed(0)}}</span>
-              <input v-else v-model.number="dot[column.name]" size="5">
+            <td v-for="[name, column] of Object.entries(columns)" :key="name + column.id">
+              <span v-if="running">{{dot[name].toFixed(0)}}</span>
+              <input v-else v-model.number="dot[name]" size="5">
             </td>
           </tr>
         </tbody>
@@ -93,7 +93,7 @@ export default {
       dt: 0,
       // units are px, px/s, and degrees
       dots: [
-        {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 100, theta: 30},
+        {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 400, theta: 30},
       ],
       columns: [
         ["density", 1, 256],
@@ -102,7 +102,7 @@ export default {
         ["y", 100, 700],
         ["v", 0, 100],
         ["theta", -180, 180]
-      ].map((col, i) => ({id: i, name: col[0], min: col[1], max: col[2]})),
+      ].reduce((columns, col, i) => ({...columns, [col[0]]: {id: i, min: col[1], max: col[2]}}), {}),
       numCollision: 0,
       dims: [900, 800],
       e: 1,
@@ -118,28 +118,24 @@ export default {
   methods: {
     addOne: function () {
       let newDot = {id: this.dots.length};
-      // this.columns.forEach(col => newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random()));
-      this.columns.filter(col => !['x', 'y', 'diameter'].includes(col.name)).forEach(col => {
-        newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
+      Object.entries(this.columns).filter(([name]) => !['x', 'y', 'diameter'].includes(name)).forEach(([name, col]) => {
+        newDot[name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
       let count = 0;
       while (count < this.maxCount) {
-        // this.columns.filter(col => ['x', 'y'].includes(col.name)).forEach(col => {
-        //   newDot[col.name] = Math.floor(col.min + (col.max - col.min) * Math.random());
-        // });
-        newDot.x = Math.floor(this.columns[1].max / 2 + (this.dims[0] - this.columns[1].max) * Math.random());
-        newDot.y = Math.floor(this.columns[1].max / 2 + (this.dims[1] - this.columns[1].max) * Math.random());
+        newDot.x = Math.floor(this.columns.diameter.max / 2 + (this.dims[0] - this.columns.diameter.max) * Math.random());
+        newDot.y = Math.floor(this.columns.diameter.max / 2 + (this.dims[1] - this.columns.diameter.max) * Math.random());
         count++;
-        let diameterMax = this.columns[1].max;
+        let diameterMax = this.columns.diameter.max;
         this.dots.forEach(dot => {
           let dr2 = [dot.x - newDot.x, dot.y - newDot.y].reduce((dr2, comp) => dr2 + comp * comp, 0);
           diameterMax = Math.min(diameterMax, 2 * Math.sqrt(dr2) - dot.diameter);
         });
-        if (diameterMax >= this.columns[1].min) {
-          newDot.diameter = Math.floor(this.columns[1].min + (diameterMax - this.columns[1].min) * Math.random());
+        if (diameterMax >= this.columns.diameter.min) {
+          newDot.diameter = Math.floor(this.columns.diameter.min + (diameterMax - this.columns.diameter.min) * Math.random());
           let theta = newDot.theta * Math.PI / 180;
           newDot.vxy = [Math.cos(theta), -Math.sin(theta)].map(comp => newDot.v * comp);
-          newDot.rxy = [newDot.x, -newDot.y];
+          newDot.rxy = [newDot.x, this.dims[1] - newDot.y];
           this.message = '';
           return this.dots.push(newDot);
         }

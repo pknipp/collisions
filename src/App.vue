@@ -188,7 +188,7 @@ export default {
               let totRadius = (doti.diameter + dotj.diameter) / 2;
               // set up for use of quadratic formula
               let a = dv.reduce((dv2, comp) => dv2 + comp ** 2, 0);
-              let c = dr.reduce((dr2, comp) => dr2 + comp ** 2, 0) - totRadius * totRadius;
+              let c = dr.reduce((dr2, comp) => dr2 + comp ** 2, 0) - totRadius ** 2;
               let b = 2 * dr.reduce((dot, comp, k) => dot + comp * dv[k], 0);
               let disc = b * b - 4 * a * c;
               // 1st test whether particles already overlap

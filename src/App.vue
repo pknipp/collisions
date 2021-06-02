@@ -95,13 +95,13 @@ export default {
       dots: [
         {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 400, theta: 30},
       ],
-      columns: [
+      cols: [
         ["density", 1, 256],
         ["diameter", 10, 100],
-        ["x", 50, 850],
-        ["y", 50, 850],
+        ["x", null, null],
+        ["y", null, null],
         ["v", 0, 100],
-        ["theta", -180, 180]
+        ["theta", -180, 180],
       ].reduce((columns, col, i) => ({...columns, [col[0]]: {id: i, min: col[1], max: col[2]}}), {}),
       numCollision: 0,
       dims: [900, 800],
@@ -109,6 +109,18 @@ export default {
       running: false,
       maxCount: 100,
       message:''
+    }
+  },
+  computed: {
+      columns: function () {
+        return {...this.cols,
+        x: {...this.cols.x,
+          min: this.cols.diameter.max / 2,
+          max: this.dims[0] - this.cols.diameter.max / 2},
+        y: {...this.cols.y,
+          min: this.cols.diameter.max / 2,
+          max: this.dims[1] - this.cols.diameter.max / 2}
+        }
     }
   },
   beforeDestroy() {

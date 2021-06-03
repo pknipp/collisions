@@ -47,9 +47,11 @@
           <tr>
             <td>min<br/>max</td>
             <td v-for="column of Object.values(columns)" :key="'max/min' + column.id">
-              <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min" size="5">
-              <br/>
-              <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max" size="5">
+              <span v-if="column.min || column.max">
+                <span v-if="running">{{column.min}}</span><input v-else v-model.number="column.min" size="5">
+                <br/>
+                <span v-if="running">{{column.max}}</span><input v-else v-model.number="column.max" size="5">
+              </span>
             </td>
           </tr>
         </thead>
@@ -61,10 +63,10 @@
           </tr>
           <tr v-for="(dot, index) in dots" :key="dot.id">
             <td>
-              <button v-if="dots.length > 1" @click="() => subtractSpecificOne(index)">Remove particle</button>
+              <button v-if="dots.length > 1" @click="() => subtractSpecificOne(index)">Remove</button>
             </td>
             <td v-for="[name, column] of Object.entries(columns)" :key="name + column.id">
-              <span v-if="running">{{dot[name].toFixed(0)}}</span>
+              <span v-if="running || !column.max">{{dot[name].toFixed(0)}}</span>
               <input v-else v-model.number="dot[name]" size="5">
             </td>
           </tr>
@@ -92,12 +94,13 @@ export default {
       time: 0,
       dt: 0,
       // units are px, px/s, and degrees
-      dots: [
+      dotss: [
         {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 400, theta: 30},
       ],
       cols: [
         ["density", 1, 256],
         ["diameter", 10, 100],
+        ["mass", null, null],
         ["x", null, null],
         ["y", null, null],
         ["v", 0, 100],
@@ -112,16 +115,17 @@ export default {
     }
   },
   computed: {
-      columns: function () {
-        return {...this.cols,
-        x: {...this.cols.x,
-          min: this.cols.diameter.max / 2,
-          max: this.dims[0] - this.cols.diameter.max / 2},
-        y: {...this.cols.y,
-          min: this.cols.diameter.max / 2,
-          max: this.dims[1] - this.cols.diameter.max / 2}
-        }
-    }
+    columns: function () {
+      return {...this.cols,
+      x: {...this.cols.x,
+        min: Math.max(this.cols.x.min, this.cols.diameter.max / 2),
+        max: Math.min(this.cols.x.max, this.dims[0] - this.cols.diameter.max / 2)},
+      y: {...this.cols.y,
+        min: this.cols.diameter.max / 2,
+        max: this.dims[1] - this.cols.diameter.max / 2}
+      }
+    },
+    dots: function () {return this.dotss.map(dot => ({...dot, mass: (Math.PI / 6) * dot.density * dot.diameter ** 3 }))}
   },
   beforeDestroy() {
     // prevent memory leak
@@ -130,7 +134,7 @@ export default {
   methods: {
     addOne: function () {
       let newDot = {id: this.dots.length};
-      Object.entries(this.columns).filter(([name]) => !['x', 'y', 'diameter'].includes(name)).forEach(([name, col]) => {
+      Object.entries(this.columns).filter(([name]) => ['density', 'v', 'theta'].includes(name)).forEach(([name, col]) => {
         newDot[name] = Math.floor(col.min + (col.max - col.min) * Math.random());
       });
       let count = 0;
@@ -148,6 +152,7 @@ export default {
           let theta = newDot.theta * Math.PI / 180;
           newDot.vxy = [Math.cos(theta), -Math.sin(theta)].map(comp => newDot.v * comp);
           newDot.rxy = [newDot.x, this.dims[1] - newDot.y];
+          newDot.mass = (Math.PI / 6) * newDot.density * newDot.diameter ** 3;
           this.message = '';
           return this.dots.push(newDot);
         }
@@ -175,11 +180,13 @@ export default {
     },
     increment: function () {
       // "numCol" means the number of the next collision, w/1-based counting
+      console.log(this.dots[0].mass);
       if (!this.numCollision) {
         this.dots.forEach(dot => {
           dot.rxy = [dot.x, this.dims[1] - dot.y];
           let theta = dot.theta * Math.PI / 180;
           dot.vxy = [Math.cos(theta), -Math.sin(theta)].map(comp => dot.v * comp);
+          dot.mass = (Math.PI / 6) * dot.density * dot.diameter ** 3;
         });
       } else {
         let dtMin = Infinity;

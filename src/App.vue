@@ -4,10 +4,20 @@
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
     <div>Coefficient of restitution: <span v-if="running">{{e}}</span><input v-else v-model.number="e" size="5"></div>
-    <button @click="() => {if (running = !running) increment()}">
+    <button @click="() => {if (running = !running) {
+      increment();
+    } else {
+      message = `PAUSED as numCollision = ${numCollision}`;
+      clearTimeout(this.timeout);
+    }}">
       {{running ? "PAUSE" : "START"}}
     </button>
     <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCollision}}</div>
+    <div v-bind:style="{
+      width: '100px',
+      height: '2px',
+      borderWidth: '1px',
+    }"></div>
     <div class="container">
       <div class="sphere-container" v-bind:style="{
         width: dims[0] + 'px',
@@ -220,8 +230,9 @@ export default {
           }
         }
         // Change each dot's coordinates until the moment of the next collision.
-        this.dots.forEach((dot, i) => dot.rxy.forEach((comp, j) => this.dots[i].rxy[j] += dot.vxy[j] * dtMin));
+        this.dots.forEach(dot => dot.rxy.forEach((blah, j) => dot.rxy[j] += dot.vxy[j] * dtMin));
         this.dt = dtMin;
+        // A collision w/a wall means that i = j.
         if (iMin === jMin) {
           // If the collision was with a wall, negate the appropriate component of the relevant dot's velocity.
           this.dots[iMin].vxy[wallIndexMin[0]] *= -this.e;
@@ -259,9 +270,13 @@ export default {
         [dot.x, dot.y] = dot.rxy;
         dot.y = this.dims[1] - dot.y;
         dot.v = Math.sqrt((dot.vxy[0] ** 2) + (dot.vxy[1] ** 2));
-        dot.theta = 180 * Math.atan2(dot.vxy[1], dot.vxy[0]) / Math.PI;
+        dot.theta = 180 * Math.atan2(dot.vxy[1], -dot.vxy[0]) / Math.PI;
       })
-      if (this.running) this.timeout = setTimeout(this.increment, this.dt * 1000);
+      if (this.running) {
+        this.timeout = setTimeout(this.increment, this.dt * 1000);
+      } else {
+        clearTimeout(this.timeout);
+      }
     }
   },
   created() {

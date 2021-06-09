@@ -1,5 +1,6 @@
 TO DO:
 Count dot-dot and dot-wall collisions separately.
+Allow one extra collision after pause, but not TWO.
 Store several successive snapshots of x, y, v, and theta, for both rendering and tabulating, if user wishes
     to step back.
 include analog clock, to provide reassurance of continuous flow of time?

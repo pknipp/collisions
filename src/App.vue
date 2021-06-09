@@ -15,8 +15,8 @@
     <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCollision}}</div>
     <div v-bind:style="{
       width: '100px',
-      height: '2px',
-      borderWidth: '1px',
+      height: '20px',
+      borderTop: '5px', solid, black,
     }"></div>
     <div class="container">
       <div class="sphere-container" v-bind:style="{

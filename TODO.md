@@ -1,4 +1,7 @@
 TO DO:
+Count dot-dot and dot-wall collisions separately.
+Store several successive snapshots of x, y, v, and theta, for both rendering and tabulating, if user wishes
+    to step back.
 include analog clock, to provide reassurance of continuous flow of time?
 Tabulate the mass (but don't make it input-able).
 input coefficient of restitution for each particle, separately

@@ -1,7 +1,7 @@
 TO DO:
 
 Get dots to render before START button is clicked.
-Make button render atop any dots which may overlap with it.
+Make button render atop any dot which overlaps w/it.
 
 Make each object a separate component (ie, make this approach more OO)
 

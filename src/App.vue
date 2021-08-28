@@ -7,7 +7,7 @@
     <button @click="() => {if (running = !running) {
       increment();
     } else {
-      message = `PAUSED  as numCollision = ${numCollision}`;
+      message = `PAUSED as numCollision = ${numCollision}`;
       clearTimeout(this.timeout);
     }}">
       {{running ? "PAUSE" : "START"}}

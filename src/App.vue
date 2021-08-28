@@ -3,7 +3,7 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <!-- <HelloWorld msg="Welcome to my very first Vue.js App" /> -->
     <!-- <button @click="running = !running">{{running ? "PAUSE" : "START"}}</button> -->
-    <div>Coefficient of restitution: <span v-if="running">{{e}}</span><input v-else v-model.number="e" size="5"></div>
+    <div>coefficient of restitution: <span v-if="running">{{e}}</span><input v-else v-model.number="e" size="5"></div>
     <button @click="() => {if (running = !running) {
       increment();
     } else {

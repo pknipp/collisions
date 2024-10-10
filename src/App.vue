@@ -37,7 +37,6 @@
         }"></div>
       </div>
       <table class="inputs">
-        <!-- <simple-vue-table :items="items" :columns="columns"></simple-vue-table> -->
         <thead>
           <tr>
             <td colspan='6'>
@@ -86,15 +85,11 @@
 
 <script>
 // import HelloWorld from "./components/HelloWorld.vue";
-// import SimpleVueTable from './simple-vue-table';
 
 export default {
   name: "App",
   // components: {
   //   HelloWorld,
-  // },
-  // components: {
-  //   SimpleVueTable,
   // },
   data() {
     return {

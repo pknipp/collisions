@@ -99,6 +99,7 @@ export default {
       // units are px, px/s, and degrees
       dots: [
         {id: 0, density: 128, diameter: 100, x: 100, y: 300, v: 400, theta: 30},
+        {id: 1, density: 100, diameter: 200, x: 200, y: 100, v: 200, theta: 120},
       ],
       cols: [
         ["density", 1, 256],

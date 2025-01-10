@@ -13,7 +13,7 @@
       {{running ? "PAUSE" : "START"}}
     </button>
     <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCollision}}</div>
-    <br/>creator: <a
+    creator: <a
       href="https://pknipp.github.io/"
       target="_blank"
       rel="noreferrer"

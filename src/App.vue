@@ -13,6 +13,20 @@
       {{running ? "PAUSE" : "START"}}
     </button>
     <div>time: {{time.toFixed(3)}} s, number of collisions: {{numCollision}}</div>
+    <br/>creator: <a
+      href="https://pknipp.github.io/"
+      target="_blank"
+      rel="noreferrer"
+    >
+      Peter Knipp
+    </a>
+    <br/>repo: <a
+      href="https://github.com/pknipp/collisions"
+      target="_blank"
+      rel="noreferrer"
+    >
+      github.com/pknipp/collisions
+    </a>
     <div v-bind:style="{
       width: '100px',
       height: '20px',
